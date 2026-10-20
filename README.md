@@ -8,4 +8,4 @@
 - Test: `1`–`8` tür seç · `Enter` gönder, sonra `Enter` veya `Space` ile ilerle · `Esc` bitir
 - Her ekranda `0`: periyodik tabloyu gizle veya göster
 
-**Canlı site:** CANLI_URL_BURAYA
+**Canlı site:** https://kimya-element-testi.vercel.app
