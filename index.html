@@ -106,6 +106,7 @@
 
   .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .seg.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .seg.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .seg button {
     appearance: none; min-width: 0; padding: 11px 6px;
     font: inherit; font-size: 15px; font-weight: 700; line-height: 1.2; color: var(--text);
@@ -191,6 +192,28 @@
   }
   .q-input input:disabled { opacity: 1; color: var(--text); }
   .q-flow { margin: 8px 0 0; }
+
+  /* Seçenekli mod: dört cevap düğmesi (2×2; çok dar ekranda tek sütun) */
+  .q-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; min-width: 0; }
+  .opt {
+    appearance: none; min-width: 0; min-height: 56px; padding: 10px 12px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px;
+    font: inherit; font-size: 17px; font-weight: 700; line-height: 1.2; text-align: center;
+    color: var(--text); background: var(--card-2);
+    border: 1px solid var(--border-2); border-radius: 12px;
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s;
+  }
+  .opt-label { min-width: 0; overflow-wrap: anywhere; }
+  .opt kbd { flex: none; }
+  .opt:not(.on):hover:not(:disabled) { border-color: #4a4a57; }
+  .opt.on { border-color: var(--text); background: rgba(237, 237, 241, .12); }
+  .opt.right { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .opt:disabled { cursor: default; }
+  @media (max-width: 359px) {
+    .q-choices { grid-template-columns: minmax(0, 1fr); }
+  }
 
   .q-cats { grid-area: cats; display: grid; align-content: start; gap: 10px; min-width: 0; }
   .cat-head {
@@ -441,6 +464,14 @@
       </div>
 
       <div class="field">
+        <div class="field-label" id="lbl-mode">Cevap şekli <kbd class="kb-key" aria-hidden="true">X</kbd></div>
+        <div class="seg two" id="seg-mode" role="group" aria-labelledby="lbl-mode">
+          <button type="button" data-val="type" aria-pressed="false">Yazarak</button>
+          <button type="button" data-val="choice" aria-pressed="false">Seçenekli</button>
+        </div>
+      </div>
+
+      <div class="field">
         <label class="check">
           <input type="checkbox" id="opt-retry" checked>
           <span>Yanlışları tekrar sor <kbd class="kb-key" aria-hidden="true">R</kbd></span>
@@ -489,7 +520,8 @@
         <input id="name-input" type="text" placeholder="Elementin Türkçe adı" maxlength="40"
                autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
                enterkeyhint="done" autofocus>
-        <p class="hint center kb-hint q-flow">İsmi yaz → 1–8 ile türü seç → Enter</p>
+        <div class="q-choices" id="q-choices" role="group" aria-label="Element adı seçenekleri" hidden></div>
+        <p class="hint center kb-hint q-flow" id="name-flow">İsmi yaz → 1–8 ile türü seç → Enter</p>
       </div>
 
       <div class="q-cats">
@@ -723,9 +755,49 @@
   let current = null;          // { el, retry }
   let qState = 'asking';       // 'asking' | 'feedback'
   let picked = -1;             // seçili kategori indeksi, yoksa -1
+  let pickedName = null;       // seçenekli modda seçili ad, yoksa null
+  let choices = [];            // seçenekli modda sorunun 4 adı (ekrandaki sırayla)
   let lastCfg = null;
   let lastResult = null;
-  const opts = { range: '1-36', count: 36 };
+  const opts = { range: '1-36', count: 36, mode: 'type' };
+
+  // ---------- Cevap şekli: yazarak ('type') | seçenekli ('choice') ----------
+  // Varsayılan: dokunmatik ekranda seçenekli. Kullanıcı bir kez açıkça seçince localStorage tercihi kullanılır.
+  const MODE_KEY = 'elementTesti.answerMode';
+  try {
+    opts.mode = window.matchMedia('(pointer: coarse)').matches ? 'choice' : 'type';
+  } catch (err) {
+    opts.mode = 'type';
+  }
+  try {
+    const saved = window.localStorage.getItem(MODE_KEY);
+    if (saved === 'type' || saved === 'choice') opts.mode = saved;
+  } catch (err) {
+    /* depolama yoksa varsayılan mod kullanılır */
+  }
+
+  function syncModeUI() {
+    $('seg-mode').querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.val === opts.mode ? 'true' : 'false');
+    });
+  }
+
+  // remember: yalnızca kullanıcı açıkça seçtiğinde (tıklama veya X) tercih kaydedilir
+  function setMode(mode, remember) {
+    opts.mode = mode === 'choice' ? 'choice' : 'type';
+    if (remember) {
+      try {
+        window.localStorage.setItem(MODE_KEY, opts.mode);
+      } catch (err) {
+        /* depolama yoksa seçim bu oturumda yine geçerli */
+      }
+    }
+    syncModeUI();
+  }
+
+  function toggleMode() {
+    setMode(opts.mode === 'choice' ? 'type' : 'choice', true);
+  }
 
   function showView(name) {
     view = name;
@@ -743,6 +815,11 @@
   function hideWarn() {
     warnEl.textContent = '';
     warnEl.hidden = true;
+  }
+
+  // Ad alanına odak yalnızca yazarak modunda; seçenekli modda alan yok, klavye açılmaz
+  function focusName() {
+    if (view === 'test' && session && session.mode === 'type') input.focus({ preventScroll: true });
   }
 
   // ---------- Oturum ----------
@@ -773,11 +850,14 @@
       answers: 0,          // tekrarlar dahil tüm cevaplar
       questionNo: 0,       // gösterilen toplam soru (konum)
       retryQueue: [],      // { z, due }
-      missed: new Map()    // z -> { z, typed, picked, resolved }
+      missed: new Map(),   // z -> { z, typed, picked, resolved }
+      mode: cfg.mode === 'choice' ? 'choice' : 'type'   // bu oturumun cevap şekli (sonuç ve tekrarda korunur)
     };
     current = null;
     qState = 'asking';
     picked = -1;
+    pickedName = null;
+    choices = [];
     showView('test');
     renderTopbar();
     presentNext();
@@ -836,6 +916,23 @@
     return (s.pool.length > 0 && s.freshAsked < s.total) || s.retryQueue.length > 0;
   }
 
+  // Seçenekli mod: doğru ad + 3 çeldirici (başka elementlerin adları, tekrarsız, her soruda yeniden).
+  // Yaklaşık yarısında çeldiricilerin en fazla ikisi aynı kategoriden seçilir (zorluk için).
+  function makeChoices(el) {
+    const others = shuffle(ELEMENTS.filter(x => x !== el));
+    const used = new Set([el.names[0]]);
+    const extra = [];
+    const take = x => {
+      if (extra.length < 3 && !used.has(x.names[0])) {
+        used.add(x.names[0]);
+        extra.push(x.names[0]);
+      }
+    };
+    if (Math.random() < 0.5) others.filter(x => x.c === el.c).slice(0, 2).forEach(take);
+    others.forEach(take);
+    return shuffle([el.names[0], ...extra]);
+  }
+
   function presentNext() {
     const nxt = pickNext();
     if (!nxt) {
@@ -846,6 +943,7 @@
     current = { el: BY_Z[nxt.z], retry: nxt.retry };
     qState = 'asking';
     picked = -1;
+    pickedName = null;
     renderQuestion();
   }
 
@@ -861,24 +959,37 @@
     paintCats();
   }
 
+  // Seçenekli mod: bir seçenek seçilir; seçili olana tekrar basılırsa seçim kalkar
+  function toggleOption(i) {
+    if (view !== 'test' || qState !== 'asking' || session.mode !== 'choice') return;
+    const name = choices[i];
+    if (!name) return;
+    pickedName = pickedName === name ? null : name;
+    hideWarn();
+    paintOpts();
+  }
+
   function submitAnswer() {
     if (view !== 'test' || qState !== 'asking' || !current) return;
 
-    const typed = input.value;
+    // Seçenekli modda cevap, seçili seçeneğin adıdır; yazarak modda yazılan metin
+    const choice = session.mode === 'choice';
+    const typed = choice ? (pickedName || '') : input.value;
     const hasName = squeeze(typed).length > 0;
     const hasCat = picked >= 0;
     if (!hasName || !hasCat) {
-      showWarn(!hasName && !hasCat ? 'Lütfen elementin adını yazın ve bir tür seçin.'
-        : !hasName ? 'Lütfen elementin adını yazın.'
+      const verb = choice ? 'seçin' : 'yazın';
+      showWarn(!hasName && !hasCat ? `Lütfen elementin adını ${verb} ve bir tür seçin.`
+        : !hasName ? `Lütfen elementin adını ${verb}.`
         : 'Lütfen bir tür seçin.');
-      input.focus({ preventScroll: true });
+      focusName();
       return;
     }
 
     const s = session;
     const el = current.el;
     const pickedKey = CATEGORIES[picked].key;
-    const nameOk = nameMatches(typed, el);
+    const nameOk = choice ? typed === el.names[0] : nameMatches(typed, el);
     const catOk = pickedKey === el.c;
     const full = nameOk && catOk;
 
@@ -908,6 +1019,7 @@
     input.disabled = true;
     hideWarn();
     paintCats();
+    paintOpts();
     renderTopbar();
     renderFeedback(el, typed, nameOk, catOk, pickedKey);
   }
@@ -945,19 +1057,30 @@
   }
 
   function renderQuestion() {
+    const choice = session.mode === 'choice';
     $('q-num').textContent = String(current.el.z);
     $('q-symbol').textContent = current.el.s;
     $('q-tag').hidden = !current.retry;
+    // Yazarak: metin alanı. Seçenekli: metin alanı gizli ve devre dışı; yerine 4 seçenek gelir.
     input.value = '';
-    input.disabled = false;
+    input.hidden = choice;
+    input.disabled = choice;
+    $('q-choices').hidden = !choice;
+    $('name-flow').textContent = choice
+      ? 'İsmi seç (Q, W, E, R) → 1–8 ile türü seç → Enter'
+      : 'İsmi yaz → 1–8 ile türü seç → Enter';
+    pickedName = null;
+    choices = choice ? makeChoices(current.el) : [];
+    optButtons.forEach((b, i) => { b.querySelector('.opt-label').textContent = choices[i] || ''; });
     hideWarn();
     $('feedback').hidden = true;
     $('btn-submit').hidden = false;
     paintCats();
+    paintOpts();
     renderTopbar();
     ptAsk(current.el.z);
     window.scrollTo(0, 0);
-    input.focus({ preventScroll: true });
+    focusName();
   }
 
   function paintCats() {
@@ -968,6 +1091,21 @@
       b.classList.toggle('on', on);
       b.classList.toggle('right', answered && i === correct);
       b.classList.toggle('wrong', answered && on && i !== correct);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.disabled = answered;
+    });
+  }
+
+  // Seçenekli mod: seçili düğme; geri bildirimde doğru (yeşil) ve yanlış seçilen (kırmızı); cevaptan sonra devre dışı
+  function paintOpts() {
+    const answered = qState === 'feedback';
+    const right = answered && current ? current.el.names[0] : null;
+    optButtons.forEach((b, i) => {
+      const name = choices[i];
+      const on = pickedName !== null && name === pickedName;
+      b.classList.toggle('on', on);
+      b.classList.toggle('right', answered && name === right);
+      b.classList.toggle('wrong', answered && on && name !== right);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
       b.disabled = answered;
     });
@@ -1185,15 +1323,30 @@
     b.addEventListener('mousedown', ev => ev.preventDefault());
     b.addEventListener('click', () => {
       toggleCat(i);
-      if (view === 'test' && qState === 'asking') input.focus({ preventScroll: true });
+      if (view === 'test' && qState === 'asking') focusName();
     });
     $('cat-grid').appendChild(b);
     return b;
   });
 
+  // ---------- Seçenek düğmeleri (seçenekli mod; klavyede Q W E R) ----------
+  const OPT_KEYS = ['q', 'w', 'e', 'r'];
+  const optButtons = OPT_KEYS.map((k, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt';
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<span class="opt-label"></span><kbd class="kb-key" aria-hidden="true">' + k.toUpperCase() + '</kbd>';
+    // Fareyle tıklamada odak düğmeye geçmesin; seçenekli modda ad alanı yoktur
+    b.addEventListener('mousedown', ev => ev.preventDefault());
+    b.addEventListener('click', () => toggleOption(i));
+    $('q-choices').appendChild(b);
+    return b;
+  });
+
   // ---------- Klavye (tek merkezi dinleyici) ----------
   // Tuş önce e.key (Türkçe küçük harfe çevrilmiş) ile, olmazsa e.code (fiziksel konum) ile tanınır.
-  const LETTER_KEYS = ['q', 'w', 'e', 'a', 's', 'd', 'f', 'r', 'z', 'y', 'g', 't'];
+  const LETTER_KEYS = ['q', 'w', 'e', 'a', 's', 'd', 'f', 'r', 'z', 'y', 'g', 't', 'x'];
 
   function keyOf(e) {
     const key = e.key || '';
@@ -1226,6 +1379,7 @@
     s: segPick('seg-count', '20'),
     d: segPick('seg-count', '36'),
     f: segPick('seg-count', 'inf'),
+    x: () => toggleMode(),
     r: () => $('opt-retry').click(),
     z: clickIf('btn-weak'),
     enter: clickIf('btn-start')
@@ -1250,6 +1404,9 @@
       if (/^[1-8]$/.test(k)) return () => toggleCat(Number(k) - 1);
       if (k === 'enter') return () => submitAnswer();
       if (k === 'esc') return () => finishSession();
+      // Seçenekli modda Q W E R: 1.–4. seçenek (yazı alanı yok, harf girişi de olmaz)
+      const oi = OPT_KEYS.indexOf(k);
+      if (session.mode === 'choice' && oi >= 0) return () => toggleOption(oi);
       return null;
     }
     // Geri bildirim: Enter veya Space = Sonraki, Esc = Bitir
@@ -1270,7 +1427,7 @@
 
     // Soru sorulurken ad alanı odakta kalsın: odak dışarıdaysa tuş (ve harf) alana gider
     if ((run || printable) && view === 'test' && qState === 'asking' && document.activeElement !== input) {
-      input.focus({ preventScroll: true });
+      focusName();
     }
   });
 
@@ -1288,13 +1445,14 @@
   }
   bindSeg('seg-range', v => { opts.range = v; });
   bindSeg('seg-count', v => { opts.count = v === 'inf' ? Infinity : Number(v); });
+  bindSeg('seg-mode', v => setMode(v, true));
 
   $('btn-start').addEventListener('click', () => {
-    startSession({ kind: 'range', range: opts.range, total: opts.count, retry: $('opt-retry').checked });
+    startSession({ kind: 'range', range: opts.range, total: opts.count, retry: $('opt-retry').checked, mode: opts.mode });
   });
   $('btn-weak').addEventListener('click', () => {
     if (!weakZs().length) return;
-    startSession({ kind: 'weak', total: opts.count, retry: $('opt-retry').checked });
+    startSession({ kind: 'weak', total: opts.count, retry: $('opt-retry').checked, mode: opts.mode });
   });
   $('btn-submit').addEventListener('click', () => submitAnswer());
   $('btn-next').addEventListener('click', () => advance());
@@ -1305,7 +1463,7 @@
   $('btn-table').addEventListener('mousedown', ev => ev.preventDefault());
   $('btn-table').addEventListener('click', () => {
     toggleTable();
-    if (view === 'test' && qState === 'asking') input.focus({ preventScroll: true });
+    if (view === 'test' && qState === 'asking') focusName();
   });
   $('opt-table').addEventListener('change', () => setTableShown($('opt-table').checked));
   input.addEventListener('input', () => hideWarn());
@@ -1315,12 +1473,13 @@
   });
   $('btn-missed').addEventListener('click', () => {
     if (!lastResult || !lastResult.missedZs.length || !lastCfg) return;
-    startSession({ kind: 'list', zs: lastResult.missedZs.slice(), total: lastCfg.total, retry: lastCfg.retry });
+    startSession({ kind: 'list', zs: lastResult.missedZs.slice(), total: lastCfg.total, retry: lastCfg.retry, mode: lastCfg.mode });
   });
   $('btn-setup').addEventListener('click', () => showView('setup'));
 
   // ---------- Başlangıç ----------
   syncTableUI();
+  syncModeUI();
   renderSetup();
 })();
 </script>
