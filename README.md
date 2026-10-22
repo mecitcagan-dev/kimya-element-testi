@@ -9,3 +9,4 @@
 - Her ekranda `0`: periyodik tabloyu gizle veya göster
 
 **Canlı site:** https://kimya-element-testi.vercel.app
+**GitHub Pages:** https://mecitcagan-dev.github.io/kimya-element-testi/
