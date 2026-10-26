@@ -127,6 +127,24 @@
 
   .setup-actions { display: grid; gap: 10px; }
 
+  /* ---------- Sekmeler (Element | Bileşik) ---------- */
+  .tabs {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+    max-width: 560px; margin: 16px auto 0; padding: 4px;
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 14px;
+  }
+  .tab {
+    appearance: none; min-width: 0; min-height: 44px; padding: 8px 10px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font: inherit; font-size: 16px; font-weight: 700; line-height: 1.2;
+    color: var(--muted); background: transparent;
+    border: 1px solid transparent; border-radius: 10px;
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s;
+  }
+  .tab:hover:not([aria-selected="true"]) { color: var(--text); }
+  .tab[aria-selected="true"] { color: var(--text); background: var(--card); border-color: var(--border-2); }
+
   /* ---------- Test ---------- */
   .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; }
   .topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
@@ -176,6 +194,9 @@
     line-height: 1.05;
     letter-spacing: -0.04em;
   }
+  /* Bileşik sorusu: ad uzun olabilir (satır kırılır); formül en çok bir satıra sığar */
+  .q-symbol.is-name { font-size: clamp(36px, 7vw, 72px); line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+  .q-symbol.is-formula { font-size: clamp(40px, 8vw, 72px); }
   .q-input { grid-area: inp; justify-self: center; width: 100%; max-width: 360px; }
   .q-input input {
     display: block; width: 100%;
@@ -280,6 +301,8 @@
       padding: 24px 16px 18px;
     }
     .q-input, .q-actions { max-width: none; }
+    .q-symbol.is-name { font-size: clamp(36px, 10vw, 76px); }
+    .q-symbol.is-formula { font-size: clamp(40px, 14vw, 64px); }
   }
   @media (hover: none), (max-width: 640px) {
     .kb-hint { display: none; }
@@ -408,6 +431,7 @@
     display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: start;
     padding: 12px; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
   }
+  .miss.is-compound { grid-template-columns: minmax(0, 1fr); }
   .miss-sym { padding-top: 2px; font-size: 26px; font-weight: 800; line-height: 1.1; text-align: center; }
   .miss-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
   .miss-name { font-size: 16px; font-weight: 800; }
@@ -430,6 +454,11 @@
 
   <!-- ===== Kurulum ===== -->
   <section id="view-setup">
+    <div class="tabs" id="tabs" role="tablist" aria-label="Test türü">
+      <button type="button" class="tab" role="tab" data-val="element" aria-selected="true">Element <kbd class="kb-key" aria-hidden="true">1</kbd></button>
+      <button type="button" class="tab" role="tab" data-val="compound" aria-selected="false">Bileşik <kbd class="kb-key" aria-hidden="true">2</kbd></button>
+    </div>
+
     <header class="hero">
       <svg class="atom" viewBox="0 0 64 64" aria-hidden="true">
         <g fill="none" stroke="currentColor" stroke-width="2.5">
@@ -439,12 +468,12 @@
         </g>
         <circle cx="32" cy="32" r="5" fill="#e5484d"></circle>
       </svg>
-      <h1>Element Testi</h1>
-      <p>İlk 36 elementin sembolünü, Türkçe adını ve kategorisini test et.</p>
+      <h1 id="hero-title">Element Testi</h1>
+      <p id="hero-sub">İlk 36 elementin sembolünü, Türkçe adını ve kategorisini test et.</p>
     </header>
 
     <div class="card setup">
-      <div class="field">
+      <div class="field" data-quiz="element">
         <div class="field-label" id="lbl-range">Aralık</div>
         <div class="seg" id="seg-range" role="group" aria-labelledby="lbl-range">
           <button type="button" data-val="1-18" aria-pressed="false">1–18 <kbd class="kb-key" aria-hidden="true">Q</kbd></button>
@@ -453,12 +482,31 @@
         </div>
       </div>
 
-      <div class="field">
+      <div class="field" data-quiz="compound">
+        <div class="field-label" id="lbl-cdir">Soru yönü</div>
+        <div class="seg" id="seg-cdir" role="group" aria-labelledby="lbl-cdir">
+          <button type="button" data-val="ad-formul" aria-pressed="true">Ad → Formül <kbd class="kb-key" aria-hidden="true">H</kbd></button>
+          <button type="button" data-val="formul-ad" aria-pressed="false">Formül → Ad <kbd class="kb-key" aria-hidden="true">J</kbd></button>
+          <button type="button" data-val="karisik" aria-pressed="false">Karışık <kbd class="kb-key" aria-hidden="true">K</kbd></button>
+        </div>
+      </div>
+
+      <div class="field" data-quiz="element">
         <div class="field-label" id="lbl-count">Soru sayısı</div>
         <div class="seg four" id="seg-count" role="group" aria-labelledby="lbl-count">
           <button type="button" data-val="10" aria-pressed="false">10 <kbd class="kb-key" aria-hidden="true">A</kbd></button>
           <button type="button" data-val="20" aria-pressed="false">20 <kbd class="kb-key" aria-hidden="true">S</kbd></button>
           <button type="button" data-val="36" aria-pressed="true">36 <kbd class="kb-key" aria-hidden="true">D</kbd></button>
+          <button type="button" data-val="inf" aria-pressed="false">Sonsuz <kbd class="kb-key" aria-hidden="true">F</kbd></button>
+        </div>
+      </div>
+
+      <div class="field" data-quiz="compound">
+        <div class="field-label" id="lbl-ccount">Soru sayısı</div>
+        <div class="seg four" id="seg-ccount" role="group" aria-labelledby="lbl-ccount">
+          <button type="button" data-val="10" aria-pressed="false">10 <kbd class="kb-key" aria-hidden="true">A</kbd></button>
+          <button type="button" data-val="20" aria-pressed="false">20 <kbd class="kb-key" aria-hidden="true">S</kbd></button>
+          <button type="button" data-val="18" aria-pressed="true">18 <kbd class="kb-key" aria-hidden="true">D</kbd></button>
           <button type="button" data-val="inf" aria-pressed="false">Sonsuz <kbd class="kb-key" aria-hidden="true">F</kbd></button>
         </div>
       </div>
@@ -476,10 +524,10 @@
           <input type="checkbox" id="opt-retry" checked>
           <span>Yanlışları tekrar sor <kbd class="kb-key" aria-hidden="true">R</kbd></span>
         </label>
-        <p class="hint retry-hint">Yanlış cevapladığın element 3–5 soru sonra yeniden sorulur.</p>
+        <p class="hint retry-hint" id="retry-hint">Yanlış cevapladığın element 3–5 soru sonra yeniden sorulur.</p>
       </div>
 
-      <div class="field">
+      <div class="field" data-quiz="element">
         <label class="check">
           <input type="checkbox" id="opt-table" checked>
           <span>Periyodik tabloyu göster <kbd class="kb-key" aria-hidden="true">0</kbd></span>
@@ -516,7 +564,7 @@
       <div class="q-symbol" id="q-symbol"></div>
 
       <div class="q-input">
-        <label class="sr-only" for="name-input">Elementin Türkçe adı</label>
+        <label class="sr-only" for="name-input" id="name-label">Elementin Türkçe adı</label>
         <input id="name-input" type="text" placeholder="Elementin Türkçe adı" maxlength="40"
                autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
                enterkeyhint="done" autofocus>
@@ -525,7 +573,7 @@
       </div>
 
       <div class="q-cats">
-        <div class="cat-head"><span>Tür</span><span class="kb-hint">1–8 tuşları</span></div>
+        <div class="cat-head"><span>Tür</span><span class="kb-hint" id="cat-keys">1–8 tuşları</span></div>
         <div class="cat-grid" id="cat-grid"></div>
       </div>
 
@@ -547,7 +595,7 @@
       <div class="fb-row">
         <div class="fb-icon" id="fb-name-icon"></div>
         <div>
-          <div class="fb-label">İsim</div>
+          <div class="fb-label" id="fb-name-label">İsim</div>
           <div class="fb-val" id="fb-name-val"></div>
           <div class="fb-sub" id="fb-name-sub"></div>
         </div>
@@ -581,7 +629,7 @@
       <div class="res-sub" id="r-sub"></div>
       <div class="bar" aria-hidden="true"><span id="r-bar"></span></div>
       <div class="res-grid">
-        <div class="res-box"><span>İsim doğru</span><strong id="r-name">0 / 0</strong></div>
+        <div class="res-box"><span id="r-name-label">İsim doğru</span><strong id="r-name">0 / 0</strong></div>
         <div class="res-box"><span>Tür doğru</span><strong id="r-cat">0 / 0</strong></div>
         <div class="res-box"><span>En uzun seri</span><strong id="r-best">0</strong></div>
         <div class="res-box"><span>Toplam cevap (tekrarlar dahil)</span><strong id="r-total">0</strong></div>
@@ -665,6 +713,36 @@
   const BY_Z = {};
   ELEMENTS.forEach(el => { BY_Z[el.z] = el; });
 
+  // Bileşik türleri: sıra 1–4 tuşlarıyla eşleşir (Alt+rakam yazarak modunda, rakam seçenekli modda)
+  const COMPOUND_CATS = [
+    { key: 'Asit', rgb: '255,146,43' },
+    { key: 'Baz', rgb: '77,171,247' },
+    { key: 'Tuz', rgb: '255,212,59' },
+    { key: 'Oksit', rgb: '56,217,217' }
+  ];
+
+  // z: sıra (1–18), f: formül (ham metin), names: [kanonik ad, ...kabul edilen], c: tür
+  const COMPOUNDS = [
+    { z: 1,  f: 'H2O', names: ['Su'], c: 'Oksit' },
+    { z: 2,  f: 'HCl', names: ['Tuz ruhu'], c: 'Asit' },
+    { z: 3,  f: 'H2SO4', names: ['Zaç yağı'], c: 'Asit' },
+    { z: 4,  f: 'HNO3', names: ['Kezzap'], c: 'Asit' },
+    { z: 5,  f: 'CH3COOH', names: ['Sirke ruhu'], c: 'Asit' },
+    { z: 6,  f: 'NH3', names: ['Amonyak'], c: 'Baz' },
+    { z: 7,  f: 'NaCl', names: ['Sofra tuzu'], c: 'Tuz' },
+    { z: 8,  f: 'KOH', names: ['Potas kostik'], c: 'Baz' },
+    { z: 9,  f: 'NaOH', names: ['Sud kostik'], c: 'Baz' },
+    { z: 10, f: 'NaHCO3', names: ['Yemek sodası'], c: 'Tuz' },
+    { z: 11, f: 'Na2CO3', names: ['Çamaşır sodası'], c: 'Tuz' },
+    { z: 12, f: 'CaCO3', names: ['Kireç taşı'], c: 'Tuz' },
+    { z: 13, f: 'CaO', names: ['Sönmemiş kireç'], c: 'Oksit' },
+    { z: 14, f: 'Ca(OH)2', names: ['Sönmüş kireç'], c: 'Baz' },
+    { z: 15, f: 'HCOOH', names: ['Karınca asiti'], c: 'Asit' },
+    { z: 16, f: 'KNO3', names: ['Güherçile'], c: 'Tuz' },
+    { z: 17, f: 'CuSO4', names: ['Göztaşı'], c: 'Tuz' },
+    { z: 18, f: 'FeSO4', names: ['Kıbrıs'], c: 'Tuz' }
+  ];
+
   // ---------- Yardımcılar ----------
   const $ = id => document.getElementById(id);
   const input = $('name-input');
@@ -695,6 +773,51 @@
     const key = foldKey(typed);
     return key.length > 0 && el.names.some(n => foldKey(n) === key);
   };
+
+  // ---------- Bileşik formülleri ----------
+  // Gösterim: harf veya kapanış parantezinden sonraki rakamlar alt simge olur (H2O → H₂O).
+  // Her rakam tek karakterle değiştiği için metnin uzunluğu ve imleç konumu korunur.
+  const formatFormula = s => String(s == null ? '' : s).replace(
+    /([A-Za-z)₀-₉])([0-9₀-₉]+)/g,
+    (m, p, run) => p + run.replace(/[0-9]/g, d => String.fromCharCode(0x2080 + Number(d)))
+  );
+
+  // Karşılaştırma anahtarı: alt simgeler düz rakam olur, boşluk ve parantez atılır, küçük harfe çevrilir
+  const formulaKey = s => String(s == null ? '' : s)
+    .replace(/[₀-₉]/g, ch => String(ch.charCodeAt(0) - 0x2080))
+    .replace(/[\s()]/g, '')
+    .toLowerCase();
+
+  const formulaMatches = (typed, c) => {
+    const key = formulaKey(typed);
+    return key.length > 0 && key === c.fk;
+  };
+
+  COMPOUNDS.forEach(c => {
+    c.fk = formulaKey(c.f);
+    c.disp = formatFormula(c.f);
+  });
+  const CMP_BY_Z = {};
+  COMPOUNDS.forEach(c => { CMP_BY_Z[c.z] = c; });
+
+  // Bileşik, seçenekli mod: doğru cevap + 3 çeldirici (diğer bileşiklerin cevapları, tekrarsız).
+  // Yaklaşık yarısında çeldiricilerin en fazla ikisi aynı türden seçilir (element testiyle aynı mantık).
+  function makeCompoundChoices(c, formula) {
+    const ans = x => (formula ? x.disp : x.names[0]);
+    const key = x => (formula ? x.fk : foldKey(x.names[0]));
+    const others = shuffle(COMPOUNDS.filter(x => x !== c));
+    const used = new Set([key(c)]);
+    const extra = [];
+    const take = x => {
+      if (extra.length < 3 && !used.has(key(x))) {
+        used.add(key(x));
+        extra.push(ans(x));
+      }
+    };
+    if (Math.random() < 0.5) others.filter(x => x.c === c.c).slice(0, 2).forEach(take);
+    others.forEach(take);
+    return shuffle([ans(c), ...extra]);
+  }
 
   // ---------- İstatistik (localStorage, try/catch ile) ----------
   const toCount = v => {
@@ -749,6 +872,55 @@
       .map(x => x.z);
   }
 
+  // ---------- Bileşik istatistiği (ayrı anahtar; try/catch ile) ----------
+  const CSTORE_KEY = 'elementTesti.compounds.v1';
+  let cstats = {};
+  try {
+    const raw = window.localStorage.getItem(CSTORE_KEY);
+    const obj = raw ? JSON.parse(raw) : null;
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+      Object.keys(obj).forEach(k => {
+        const v = obj[k];
+        if (v && typeof v === 'object') {
+          cstats[k] = { seen: toCount(v.seen), answerWrong: toCount(v.answerWrong), catWrong: toCount(v.catWrong) };
+        }
+      });
+    }
+  } catch (err) {
+    cstats = {};
+  }
+
+  function saveCStats() {
+    try {
+      window.localStorage.setItem(CSTORE_KEY, JSON.stringify(cstats));
+    } catch (err) {
+      /* depolama yoksa uygulama yine çalışır */
+    }
+  }
+
+  function recordCStats(c, answerOk, catOk) {
+    const st = cstats[c.fk] || { seen: 0, answerWrong: 0, catWrong: 0 };
+    st.seen += 1;
+    if (!answerOk) st.answerWrong += 1;
+    if (!catOk) st.catWrong += 1;
+    cstats[c.fk] = st;
+    saveCStats();
+  }
+
+  function cMistakes(c) {
+    const st = cstats[c.fk];
+    return st ? st.answerWrong + st.catWrong : 0;
+  }
+
+  function weakCompoundIds() {
+    return COMPOUNDS
+      .map(c => ({ z: c.z, m: cMistakes(c) }))
+      .filter(x => x.m > 0)
+      .sort((a, b) => (b.m - a.m) || (a.z - b.z))
+      .slice(0, WEAK_LIMIT)
+      .map(x => x.z);
+  }
+
   // ---------- Durum ----------
   let view = 'setup';          // 'setup' | 'test' | 'result'
   let session = null;
@@ -760,6 +932,27 @@
   let lastCfg = null;
   let lastResult = null;
   const opts = { range: '1-36', count: 36, mode: 'type' };
+
+  // ---------- Sekme ve bileşik ayarları ----------
+  // setupTab: kurulum ekranındaki test ('element' | 'compound'); son seçim localStorage'da tutulur
+  const TAB_KEY = 'elementTesti.tab';
+  const DIR_KEY = 'elementTesti.compoundDirection';
+  const DIRS = ['ad-formul', 'formul-ad', 'karisik'];   // Ad → Formül, Formül → Ad, Karışık
+  let setupTab = 'element';
+  try {
+    const saved = window.localStorage.getItem(TAB_KEY);
+    if (saved === 'element' || saved === 'compound') setupTab = saved;
+  } catch (err) {
+    /* depolama yoksa varsayılan sekme kullanılır */
+  }
+  const copts = { count: '18', dir: 'ad-formul' };   // count: '10' | '20' | '18' | 'inf'
+  try {
+    const saved = window.localStorage.getItem(DIR_KEY);
+    if (DIRS.includes(saved)) copts.dir = saved;
+  } catch (err) {
+    /* depolama yoksa varsayılan yön kullanılır */
+  }
+  const compoundTotal = () => (copts.count === 'inf' ? Infinity : Number(copts.count));
 
   // ---------- Cevap şekli: yazarak ('type') | seçenekli ('choice') ----------
   // Varsayılan: dokunmatik ekranda seçenekli. Kullanıcı bir kez açıkça seçince localStorage tercihi kullanılır.
@@ -805,6 +998,7 @@
     $('view-test').hidden = name !== 'test';
     $('view-result').hidden = name !== 'result';
     if (name === 'setup') renderSetup();
+    syncTableUI();
     window.scrollTo(0, 0);
   }
 
@@ -822,8 +1016,36 @@
     if (view === 'test' && session && session.mode === 'type') input.focus({ preventScroll: true });
   }
 
+  // Bileşikte soru adı mı, cevap formül mü (Ad → Formül: soru adı, cevap formül)
+  const formulaAsk = cur => !!cur && cur.dir === 'ad-formul';
+  // Doğru cevap metni: element için ad; bileşikte soruya göre formül veya ad
+  const answerText = cur => (formulaAsk(cur) ? cur.el.disp : cur.el.names[0]);
+  // Soru yönü: "Karışık" ise her soruda rastgele
+  const questionDir = () => (session.dir === 'karisik' ? (Math.random() < 0.5 ? 'ad-formul' : 'formul-ad') : session.dir);
+  // Kurulum ekranında bileşik sekmesi mi (oturum sırasında oturumun türü)
+  const isCompound = () => (view === 'setup' ? setupTab : (session ? session.quiz : setupTab)) === 'compound';
+  const catList = () => (session && session.quiz === 'compound' ? COMPOUND_CATS : CATEGORIES);
+
+  // Formül yazılırken rakamları anında alt simgeye çevirir (yalnızca formül beklenen bileşik sorusunda)
+  function formatFormulaInput(ev) {
+    if (ev && ev.isComposing) return;
+    if (view !== 'test' || qState !== 'asking' || !session || session.quiz !== 'compound' || !formulaAsk(current)) return;
+    const v = input.value;
+    const out = formatFormula(v);
+    if (out === v) return;
+    const a = input.selectionStart;
+    const b = input.selectionEnd;
+    input.value = out;
+    input.setSelectionRange(a, b);
+  }
+
   // ---------- Oturum ----------
   function zsFor(cfg) {
+    if (cfg.quiz === 'compound') {
+      if (cfg.kind === 'weak') return weakCompoundIds();
+      if (cfg.kind === 'list') return cfg.zs.slice();
+      return COMPOUNDS.map(c => c.z);
+    }
     if (cfg.kind === 'weak') return weakZs();
     if (cfg.kind === 'list') return cfg.zs.slice();
     const [a, b] = RANGES[cfg.range] || RANGES['1-36'];
@@ -835,6 +1057,8 @@
   function startSession(cfg) {
     lastCfg = cfg;
     session = {
+      quiz: cfg.quiz === 'compound' ? 'compound' : 'element',
+      dir: cfg.quiz === 'compound' ? cfg.dir : null,   // bileşik: ad-formul | formul-ad | karisik
       pool: zsFor(cfg),
       deck: [],
       lastDrawn: -1,
@@ -859,8 +1083,17 @@
     pickedName = null;
     choices = [];
     showView('test');
+    setQuizUI();
     renderTopbar();
     presentNext();
+  }
+
+  // Oturum başında soru alanını türe göre kurar (element: 8 tür; bileşik: 4 tür, yazarak modunda ⌥ rozetleri)
+  function setQuizUI() {
+    const compound = session.quiz === 'compound';
+    const typing = session.mode === 'type';
+    renderCatButtons(compound ? COMPOUND_CATS : CATEGORIES, compound && typing);
+    $('cat-keys').textContent = !compound ? '1–8 tuşları' : (typing ? '⌥1–4' : '1–4 tuşları');
   }
 
   function drawFresh() {
@@ -940,7 +1173,12 @@
       return;
     }
     session.questionNo++;
-    current = { el: BY_Z[nxt.z], retry: nxt.retry };
+    const compound = session.quiz === 'compound';
+    current = {
+      el: compound ? CMP_BY_Z[nxt.z] : BY_Z[nxt.z],
+      retry: nxt.retry,
+      dir: compound ? questionDir() : null
+    };
     qState = 'asking';
     picked = -1;
     pickedName = null;
@@ -974,13 +1212,16 @@
 
     // Seçenekli modda cevap, seçili seçeneğin adıdır; yazarak modda yazılan metin
     const choice = session.mode === 'choice';
+    const compound = session.quiz === 'compound';
     const typed = choice ? (pickedName || '') : input.value;
     const hasName = squeeze(typed).length > 0;
     const hasCat = picked >= 0;
     if (!hasName || !hasCat) {
       const verb = choice ? 'seçin' : 'yazın';
-      showWarn(!hasName && !hasCat ? `Lütfen elementin adını ${verb} ve bir tür seçin.`
-        : !hasName ? `Lütfen elementin adını ${verb}.`
+      const what = !compound ? 'elementin adını'
+        : (formulaAsk(current) ? 'bileşiğin formülünü' : 'bileşiğin adını');
+      showWarn(!hasName && !hasCat ? `Lütfen ${what} ${verb} ve bir tür seçin.`
+        : !hasName ? `Lütfen ${what} ${verb}.`
         : 'Lütfen bir tür seçin.');
       focusName();
       return;
@@ -988,8 +1229,9 @@
 
     const s = session;
     const el = current.el;
-    const pickedKey = CATEGORIES[picked].key;
-    const nameOk = choice ? typed === el.names[0] : nameMatches(typed, el);
+    const pickedKey = catList()[picked].key;
+    const nameOk = choice ? typed === answerText(current)
+      : (formulaAsk(current) ? formulaMatches(typed, el) : nameMatches(typed, el));
     const catOk = pickedKey === el.c;
     const full = nameOk && catOk;
 
@@ -1003,7 +1245,8 @@
     s.streak = full ? s.streak + 1 : 0;
     s.bestStreak = Math.max(s.bestStreak, s.streak);
 
-    recordStats(el, nameOk, catOk);
+    if (compound) recordCStats(el, nameOk, catOk);
+    else recordStats(el, nameOk, catOk);
 
     if (!full) {
       if (!s.missed.has(el.z)) {
@@ -1028,6 +1271,7 @@
     const s = session;
     const missed = Array.from(s.missed.values());
     lastResult = {
+      quiz: s.quiz,
       answered: s.freshAnswered,
       full: s.fullCorrect,
       nameOk: s.nameCorrect,
@@ -1058,19 +1302,32 @@
 
   function renderQuestion() {
     const choice = session.mode === 'choice';
-    $('q-num').textContent = String(current.el.z);
-    $('q-symbol').textContent = current.el.s;
+    const compound = session.quiz === 'compound';
+    const askFormula = formulaAsk(current);
+    // Bileşikte soru numarası yoktur; element testinde atom numarası gösterilir
+    $('q-num').textContent = compound ? '' : String(current.el.z);
+    $('q-symbol').textContent = !compound ? current.el.s : (askFormula ? current.el.names[0] : current.el.disp);
+    $('q-symbol').className = 'q-symbol' + (!compound ? '' : (askFormula ? ' is-name' : ' is-formula'));
     $('q-tag').hidden = !current.retry;
     // Yazarak: metin alanı. Seçenekli: metin alanı gizli ve devre dışı; yerine 4 seçenek gelir.
+    const answerLabel = !compound ? 'Elementin Türkçe adı'
+      : (askFormula ? 'Bileşiğin formülü' : 'Bileşiğin Türkçe adı');
     input.value = '';
+    input.placeholder = answerLabel;
+    $('name-label').textContent = answerLabel;
     input.hidden = choice;
     input.disabled = choice;
     $('q-choices').hidden = !choice;
-    $('name-flow').textContent = choice
-      ? 'İsmi seç (Q, W, E, R) → 1–8 ile türü seç → Enter'
-      : 'İsmi yaz → 1–8 ile türü seç → Enter';
+    $('q-choices').setAttribute('aria-label', compound ? 'Bileşik seçenekleri' : 'Element adı seçenekleri');
+    if (!compound) {
+      $('name-flow').textContent = choice
+        ? 'İsmi seç (Q, W, E, R) → 1–8 ile türü seç → Enter'
+        : 'İsmi yaz → 1–8 ile türü seç → Enter';
+    } else {
+      $('name-flow').textContent = `${askFormula ? 'Formülü' : 'Adı'} ${choice ? 'seç (Q, W, E, R)' : 'yaz'} → ${choice ? '1–4' : '⌥1–4'} ile türü seç → Enter`;
+    }
     pickedName = null;
-    choices = choice ? makeChoices(current.el) : [];
+    choices = choice ? (compound ? makeCompoundChoices(current.el, askFormula) : makeChoices(current.el)) : [];
     optButtons.forEach((b, i) => { b.querySelector('.opt-label').textContent = choices[i] || ''; });
     hideWarn();
     $('feedback').hidden = true;
@@ -1078,14 +1335,14 @@
     paintCats();
     paintOpts();
     renderTopbar();
-    ptAsk(current.el.z);
+    if (!compound) ptAsk(current.el.z);
     window.scrollTo(0, 0);
     focusName();
   }
 
   function paintCats() {
     const answered = qState === 'feedback';
-    const correct = answered && current ? CATEGORIES.findIndex(c => c.key === current.el.c) : -1;
+    const correct = answered && current ? catList().findIndex(c => c.key === current.el.c) : -1;
     catButtons.forEach((b, i) => {
       const on = picked === i;
       b.classList.toggle('on', on);
@@ -1099,7 +1356,7 @@
   // Seçenekli mod: seçili düğme; geri bildirimde doğru (yeşil) ve yanlış seçilen (kırmızı); cevaptan sonra devre dışı
   function paintOpts() {
     const answered = qState === 'feedback';
-    const right = answered && current ? current.el.names[0] : null;
+    const right = answered && current ? answerText(current) : null;
     optButtons.forEach((b, i) => {
       const name = choices[i];
       const on = pickedName !== null && name === pickedName;
@@ -1120,19 +1377,21 @@
     const full = nameOk && catOk;
     const any = nameOk || catOk;
     const fb = $('feedback');
+    const compound = session.quiz === 'compound';
+    const askFormula = formulaAsk(current);
+    const right = answerText(current);
+    const said = compound ? formatFormula(squeeze(typed)) : squeeze(typed);
+    const same = askFormula ? formulaKey(typed) === formulaKey(right) : foldKey(typed) === foldKey(right);
     fb.classList.remove('good', 'mixed', 'bad');
     fb.classList.add(full ? 'good' : (any ? 'mixed' : 'bad'));
     $('fb-title').textContent = full ? 'Doğru!' : (any ? 'Kısmen doğru' : 'Yanlış');
 
-    // İsim satırı
+    // İsim satırı (bileşikte cevap formül veya addır)
     setIcon($('fb-name-icon'), nameOk);
-    $('fb-name-val').textContent = nameOk ? el.names[0] : 'Doğru cevap: ' + el.names[0];
+    $('fb-name-label').textContent = !compound ? 'İsim' : (askFormula ? 'Formül' : 'Ad');
+    $('fb-name-val').textContent = nameOk ? right : 'Doğru cevap: ' + right;
     const nameLines = [];
-    if (!nameOk) {
-      nameLines.push('Senin cevabın: “' + squeeze(typed) + '”');
-    } else if (foldKey(typed) !== foldKey(el.names[0])) {
-      nameLines.push('Senin cevabın: “' + squeeze(typed) + '”');
-    }
+    if (!nameOk || !same) nameLines.push('Senin cevabın: “' + said + '”');
     if (el.names.length > 1) nameLines.push('Ayrıca kabul edilir: ' + el.names.slice(1).join(', '));
     $('fb-name-sub').innerHTML = nameLines.map(esc).join('<br>');
 
@@ -1142,12 +1401,10 @@
     $('fb-cat-sub').textContent = catOk ? '' : 'Seçtiğin tür: ' + pickedKey;
 
     // Bilgi kutuları
-    $('fb-info').innerHTML = [
-      ['Atom numarası', el.z],
-      ['Periyot', el.p],
-      ['Grup', el.g],
-      ['Kategori', el.c]
-    ].map(([label, value]) =>
+    const chips = compound
+      ? [['Formül', el.disp], ['Ad', el.names[0]], ['Kategori', el.c]]
+      : [['Atom numarası', el.z], ['Periyot', el.p], ['Grup', el.g], ['Kategori', el.c]];
+    $('fb-info').innerHTML = chips.map(([label, value]) =>
       `<div class="chip"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`
     ).join('');
 
@@ -1155,9 +1412,9 @@
     hideWarn();
     $('btn-submit').hidden = true;
     fb.hidden = false;
-    ptReveal(full);
+    if (!compound) ptReveal(full);
     // Tablo açıksa onu, gizliyse geri bildirim panelini görünüme getir
-    (tableShown ? $('pt-view') : fb).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    (tableShown && !compound ? $('pt-view') : fb).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   function missedItemHTML(m) {
@@ -1182,6 +1439,23 @@
       </li>`;
   }
 
+  function compoundMissedHTML(m) {
+    const c = CMP_BY_Z[m.z];
+    const ok = m.resolved;
+    return `
+      <li class="miss is-compound">
+        <div>
+          <div class="miss-top">
+            <span class="miss-name">${esc(c.disp)}</span>
+            <span class="miss-meta">${esc(c.names[0])}</span>
+            <span class="pill ${ok ? 'ok' : 'bad'}">${ok ? 'Tekrarda doğru' : 'Yanlış'}</span>
+          </div>
+          <div class="miss-line"><span class="k">Doğru tür:</span> ${esc(c.c)}</div>
+          <div class="miss-line"><span class="k">Senin cevabın:</span> ${esc(formatFormula(m.typed))} &nbsp;·&nbsp; <span class="k">Seçtiğin tür:</span> ${esc(m.picked)}</div>
+        </div>
+      </li>`;
+  }
+
   function renderResult() {
     const r = lastResult;
     const n = r.answered;
@@ -1191,20 +1465,69 @@
       ? `${n} sorudan ${r.full} tanesi tam doğru`
       : 'Bu oturumda henüz soru cevaplanmadı.';
     $('r-bar').style.width = `${pct}%`;
+    $('r-name-label').textContent = r.quiz === 'compound' ? 'Cevap doğru' : 'İsim doğru';
     $('r-name').textContent = `${r.nameOk} / ${n}`;
     $('r-cat').textContent = `${r.catOk} / ${n}`;
     $('r-best').textContent = String(r.best);
     $('r-total').textContent = String(r.answers);
+    const compound = r.quiz === 'compound';
     $('r-missed-title').textContent = r.missed.length
-      ? `Yanlış yaptığın elementler (${r.missed.length})`
-      : 'Yanlış yaptığın element yok';
+      ? `Yanlış yaptığın ${compound ? 'bileşikler' : 'elementler'} (${r.missed.length})`
+      : `Yanlış yaptığın ${compound ? 'bileşik' : 'element'} yok`;
     $('r-missed').innerHTML = r.missed.length
-      ? r.missed.map(missedItemHTML).join('')
+      ? r.missed.map(compound ? compoundMissedHTML : missedItemHTML).join('')
       : `<li class="empty">${r.answers ? 'Harika! Bu testte hiç yanlış yapmadın.' : 'Henüz cevap verilmedi.'}</li>`;
     $('btn-missed').disabled = r.missed.length === 0;
   }
 
+  function markSeg(id, val) {
+    $(id).querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.val === val ? 'true' : 'false');
+    });
+  }
+
+  // Kurulum sekmesi: seçili sekmenin alanlarını gösterir; başlığı, ipucunu ve sekme durumunu ayarlar
+  function syncTabUI() {
+    const compound = setupTab === 'compound';
+    document.querySelectorAll('#tabs [data-val]').forEach(b => {
+      b.setAttribute('aria-selected', b.dataset.val === setupTab ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-quiz]').forEach(n => {
+      n.hidden = n.dataset.quiz !== setupTab;
+    });
+    $('hero-title').textContent = compound ? 'Bileşik Testi' : 'Element Testi';
+    $('hero-sub').textContent = compound
+      ? 'Bileşiklerin formülünü, Türkçe adını ve türünü test et.'
+      : 'İlk 36 elementin sembolünü, Türkçe adını ve kategorisini test et.';
+    $('retry-hint').textContent = compound
+      ? 'Yanlış cevapladığın bileşik 3–5 soru sonra yeniden sorulur.'
+      : 'Yanlış cevapladığın element 3–5 soru sonra yeniden sorulur.';
+    markSeg('seg-cdir', copts.dir);
+    markSeg('seg-ccount', copts.count);
+  }
+
+  function setTab(tab, remember) {
+    setupTab = tab === 'compound' ? 'compound' : 'element';
+    if (remember) {
+      try {
+        window.localStorage.setItem(TAB_KEY, setupTab);
+      } catch (err) {
+        /* depolama yoksa sekme bu oturumda yine geçerli */
+      }
+    }
+    renderSetup();
+  }
+
   function renderSetup() {
+    syncTabUI();
+    if (setupTab === 'compound') {
+      const weakC = weakCompoundIds();
+      $('btn-weak').disabled = weakC.length === 0;
+      $('weak-hint').textContent = weakC.length
+        ? 'Hata geçmişine göre en çok yanlış yaptığın bileşikler: ' + weakC.map(z => CMP_BY_Z[z].disp).join(', ')
+        : 'Henüz hata kaydın yok. Birkaç test çözdükten sonra burada görünür.';
+      return;
+    }
     const weak = weakZs();
     $('btn-weak').disabled = weak.length === 0;
     $('weak-hint').textContent = weak.length
@@ -1296,7 +1619,9 @@
   // Kartı ve denetimleri tercihe göre günceller. Gizliyken hücre sınıfları (soru halkası,
   // geri bildirim) korunur; yeniden gösterilince tablo o anki durumuyla görünür.
   function syncTableUI() {
-    $('pt-card').hidden = !tableShown;
+    const off = isCompound();   // bileşik testinde periyodik tablo yok: kart ve düğme gizli
+    $('pt-card').hidden = !tableShown || off;
+    $('btn-table').hidden = off;
     $('table-label').textContent = tableShown ? 'Tabloyu gizle' : 'Tabloyu göster';
     $('btn-table').setAttribute('aria-expanded', tableShown ? 'true' : 'false');
     $('opt-table').checked = tableShown;
@@ -1310,24 +1635,31 @@
 
   const toggleTable = () => setTableShown(!tableShown);
 
-  // ---------- Kategori düğmeleri ----------
-  const catButtons = CATEGORIES.map((c, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'cat';
-    b.style.setProperty('--rgb', c.rgb);
-    b.setAttribute('aria-pressed', 'false');
-    b.innerHTML = '<span class="dot" aria-hidden="true"></span><span class="cat-label"></span><kbd>' + (i + 1) + '</kbd>';
-    b.querySelector('.cat-label').textContent = c.key;
-    // Fareyle tıklamada odak düğmeye geçmesin; ad alanı odakta kalsın
-    b.addEventListener('mousedown', ev => ev.preventDefault());
-    b.addEventListener('click', () => {
-      toggleCat(i);
-      if (view === 'test' && qState === 'asking') focusName();
+  // ---------- Kategori düğmeleri (oturumun türüne göre yeniden kurulur) ----------
+  let catButtons = [];
+  function renderCatButtons(list, altBadges) {
+    const grid = $('cat-grid');
+    grid.innerHTML = '';
+    catButtons = list.map((c, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cat';
+      b.style.setProperty('--rgb', c.rgb);
+      b.setAttribute('aria-pressed', 'false');
+      const badge = altBadges ? '⌥' + (i + 1) : String(i + 1);
+      b.innerHTML = '<span class="dot" aria-hidden="true"></span><span class="cat-label"></span><kbd>' + badge + '</kbd>';
+      b.querySelector('.cat-label').textContent = c.key;
+      // Fareyle tıklamada odak düğmeye geçmesin; ad alanı odakta kalsın
+      b.addEventListener('mousedown', ev => ev.preventDefault());
+      b.addEventListener('click', () => {
+        toggleCat(i);
+        if (view === 'test' && qState === 'asking') focusName();
+      });
+      grid.appendChild(b);
+      return b;
     });
-    $('cat-grid').appendChild(b);
-    return b;
-  });
+  }
+  renderCatButtons(CATEGORIES, false);
 
   // ---------- Seçenek düğmeleri (seçenekli mod; klavyede Q W E R) ----------
   const OPT_KEYS = ['q', 'w', 'e', 'r'];
@@ -1346,7 +1678,7 @@
 
   // ---------- Klavye (tek merkezi dinleyici) ----------
   // Tuş önce e.key (Türkçe küçük harfe çevrilmiş) ile, olmazsa e.code (fiziksel konum) ile tanınır.
-  const LETTER_KEYS = ['q', 'w', 'e', 'a', 's', 'd', 'f', 'r', 'z', 'y', 'g', 't', 'x'];
+  const LETTER_KEYS = ['q', 'w', 'e', 'a', 's', 'd', 'f', 'r', 'z', 'y', 'g', 't', 'x', 'h', 'j', 'k'];
 
   function keyOf(e) {
     const key = e.key || '';
@@ -1385,6 +1717,21 @@
     enter: clickIf('btn-start')
   };
 
+  // Bileşik sekmesi: aralık (Q W E) yok; H J K yön, A S D F sayı
+  const COMPOUND_SETUP_KEYS = {
+    h: segPick('seg-cdir', 'ad-formul'),
+    j: segPick('seg-cdir', 'formul-ad'),
+    k: segPick('seg-cdir', 'karisik'),
+    a: segPick('seg-ccount', '10'),
+    s: segPick('seg-ccount', '20'),
+    d: segPick('seg-ccount', '18'),
+    f: segPick('seg-ccount', 'inf'),
+    x: () => toggleMode(),
+    r: () => $('opt-retry').click(),
+    z: clickIf('btn-weak'),
+    enter: clickIf('btn-start')
+  };
+
   // Sonuç ekranı
   const RESULT_KEYS = {
     enter: clickIf('btn-restart'),
@@ -1396,12 +1743,22 @@
   // Bu ekranda tuşun yapacağı iş; yoksa null
   function actionFor(k) {
     if (!k) return null;
-    if (k === '0') return toggleTable;   // periyodik tablo: her ekranda açar/kapatır
-    if (view === 'setup') return SETUP_KEYS[k] || null;
+    const compound = isCompound();
+    if (k === '0') return compound ? null : toggleTable;   // periyodik tablo: element testinde her ekranda açar/kapatır
+    if (view === 'setup') {
+      if (k === '1') return () => setTab('element', true);
+      if (k === '2') return () => setTab('compound', true);
+      return (compound ? COMPOUND_SETUP_KEYS : SETUP_KEYS)[k] || null;
+    }
     if (view === 'result') return RESULT_KEYS[k] || null;
     if (view !== 'test') return null;
     if (qState === 'asking') {
-      if (/^[1-8]$/.test(k)) return () => toggleCat(Number(k) - 1);
+      // Bileşik yazarak modunda rakamlar yazı alanına gider; tür için Alt+1–4 (keydown'da)
+      if (compound) {
+        if (session.mode === 'choice' && /^[1-4]$/.test(k)) return () => toggleCat(Number(k) - 1);
+      } else if (/^[1-8]$/.test(k)) {
+        return () => toggleCat(Number(k) - 1);
+      }
       if (k === 'enter') return () => submitAnswer();
       if (k === 'esc') return () => finishSession();
       // Seçenekli modda Q W E R: 1.–4. seçenek (yazı alanı yok, harf girişi de olmaz)
@@ -1416,7 +1773,18 @@
   }
 
   document.addEventListener('keydown', e => {
-    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (e.ctrlKey || e.metaKey || e.isComposing) return;
+
+    // Alt+1–4: bileşik yazarak modunda tür seçimi (Option+rakam sembol yazmasın); diğer Alt kombinasyonları yok
+    if (e.altKey) {
+      const alt = /^(?:Digit|Numpad)([1-4])$/.exec(e.code || '');
+      if (alt && view === 'test' && qState === 'asking' && session.quiz === 'compound' && session.mode === 'type') {
+        e.preventDefault();
+        if (!e.repeat) toggleCat(Number(alt[1]) - 1);
+        focusName();
+      }
+      return;
+    }
 
     const run = actionFor(keyOf(e));
     const printable = (e.key || '').length === 1;
@@ -1446,11 +1814,33 @@
   bindSeg('seg-range', v => { opts.range = v; });
   bindSeg('seg-count', v => { opts.count = v === 'inf' ? Infinity : Number(v); });
   bindSeg('seg-mode', v => setMode(v, true));
+  bindSeg('seg-ccount', v => { copts.count = v; });
+  bindSeg('seg-cdir', v => {
+    copts.dir = v;
+    try {
+      window.localStorage.setItem(DIR_KEY, v);
+    } catch (err) {
+      /* depolama yoksa yön bu oturumda yine geçerli */
+    }
+  });
+  $('tabs').addEventListener('click', ev => {
+    const b = ev.target.closest('button');
+    if (b && b.dataset.val) setTab(b.dataset.val, true);
+  });
 
   $('btn-start').addEventListener('click', () => {
+    if (setupTab === 'compound') {
+      startSession({ quiz: 'compound', kind: 'range', total: compoundTotal(), retry: $('opt-retry').checked, mode: opts.mode, dir: copts.dir });
+      return;
+    }
     startSession({ kind: 'range', range: opts.range, total: opts.count, retry: $('opt-retry').checked, mode: opts.mode });
   });
   $('btn-weak').addEventListener('click', () => {
+    if (setupTab === 'compound') {
+      if (!weakCompoundIds().length) return;
+      startSession({ quiz: 'compound', kind: 'weak', total: compoundTotal(), retry: $('opt-retry').checked, mode: opts.mode, dir: copts.dir });
+      return;
+    }
     if (!weakZs().length) return;
     startSession({ kind: 'weak', total: opts.count, retry: $('opt-retry').checked, mode: opts.mode });
   });
@@ -1466,14 +1856,17 @@
     if (view === 'test' && qState === 'asking') focusName();
   });
   $('opt-table').addEventListener('change', () => setTableShown($('opt-table').checked));
-  input.addEventListener('input', () => hideWarn());
+  input.addEventListener('input', ev => {
+    hideWarn();
+    formatFormulaInput(ev);
+  });
 
   $('btn-restart').addEventListener('click', () => {
     if (lastCfg) startSession(lastCfg);
   });
   $('btn-missed').addEventListener('click', () => {
     if (!lastResult || !lastResult.missedZs.length || !lastCfg) return;
-    startSession({ kind: 'list', zs: lastResult.missedZs.slice(), total: lastCfg.total, retry: lastCfg.retry, mode: lastCfg.mode });
+    startSession({ quiz: lastCfg.quiz, dir: lastCfg.dir, kind: 'list', zs: lastResult.missedZs.slice(), total: lastCfg.total, retry: lastCfg.retry, mode: lastCfg.mode });
   });
   $('btn-setup').addEventListener('click', () => showView('setup'));
 
