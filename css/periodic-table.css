@@ -1,0 +1,94 @@
+/* Periyodik tablo: 1–4. periyot, soru halkası ve geri bildirim parıltısı */
+/* ---------- Periyodik tablo (1–4. periyot) ---------- */
+/* Tablo her zaman tam ve yakınlaştırmasız gösterilir; yükseklik içeriğe göre oluşur.
+   Taşma kırpılmaz, böylece geri bildirimdeki parıltı tabloyu aşıp görünebilir. */
+.pt-card { margin-top: 14px; padding: 12px; }
+.pt-viewport {
+  position: relative; container-type: inline-size;
+  background: var(--card-2);
+  border: 1px solid var(--border); border-radius: 12px;
+  user-select: none; -webkit-user-select: none;
+}
+.pt-stage {
+  position: relative; width: 100%;
+  box-sizing: border-box; padding: 1.3cqw 1.5cqw;
+  display: grid;
+  grid-template-columns: 3.4cqw repeat(18, minmax(0, 1fr));
+  grid-template-rows: auto repeat(4, auto);
+  gap: .45cqw;
+}
+.pt-gl, .pt-pl {
+  font-size: .95cqw; font-weight: 600; line-height: 1;
+  color: var(--faint); text-align: center; white-space: nowrap;
+}
+.pt-gl { align-self: end; }
+.pt-pl { align-self: center; }
+.pt-cell {
+  position: relative; align-self: start;
+  aspect-ratio: 1 / 1.14; box-sizing: border-box;
+  background: #191922;
+  border: 1px solid var(--border-2); border-radius: .9cqw;
+  color: var(--text);
+  transition: background-color .3s ease, border-color .3s ease;
+}
+.pt-num {
+  position: absolute; top: 4%; left: 7%;
+  font-size: .95cqw; font-weight: 600; line-height: 1; color: var(--muted);
+}
+.pt-sym {
+  position: absolute; left: 0; right: 0; top: 50%;
+  margin-top: -.5em;   /* line-height 1 ile dikey ortalama; dönüşüm (transform) kullanılmaz */
+  font-size: 2.1cqw; font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  text-align: center; white-space: nowrap;
+}
+/* Sorulan element: cevaptan önce yalnızca nötr bir halka */
+.pt-cell.cur {
+  z-index: 1;
+  box-shadow: 0 0 0 1.5px rgba(237, 237, 241, .5);
+  animation: pt-pulse 1.8s ease-in-out infinite;
+}
+/* Geri bildirim: tüm hücreler kategori rengini alır */
+.pt-stage.is-fb .pt-cell {
+  background: rgba(var(--rgb), .16);
+  border-color: rgba(var(--rgb), .9);
+}
+/* Geri bildirim: sorulan hücre parıldar. Yeşil: tam doğru, kırmızı: isim veya tür yanlış.
+   Hücre ölçeklenmez; parıltı yalnızca box-shadow ile çizilir ve komşuların üstünde kalır. */
+.pt-stage.is-fb .pt-cell.cur.ok { --glow-rgb: 48, 164, 108; }
+.pt-stage.is-fb .pt-cell.cur.bad { --glow-rgb: 229, 72, 77; }
+.pt-stage.is-fb .pt-cell.cur.ok,
+.pt-stage.is-fb .pt-cell.cur.bad {
+  border-color: rgb(var(--glow-rgb));
+  box-shadow:
+    0 0 0 2px rgb(var(--glow-rgb)),
+    0 0 14px 4px rgba(var(--glow-rgb), .7),
+    0 0 28px 8px rgba(var(--glow-rgb), .35);
+  animation: pt-glow 1.4s ease-in-out infinite;
+}
+@keyframes pt-pulse {
+  0%, 100% { box-shadow: 0 0 0 1.5px rgba(237, 237, 241, .2); }
+  50% { box-shadow: 0 0 0 2.5px rgba(237, 237, 241, .6); }
+}
+@keyframes pt-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px rgb(var(--glow-rgb)),
+      0 0 7px 2px rgba(var(--glow-rgb), .4),
+      0 0 16px 5px rgba(var(--glow-rgb), .18);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgb(var(--glow-rgb)),
+      0 0 14px 4px rgba(var(--glow-rgb), .7),
+      0 0 28px 8px rgba(var(--glow-rgb), .35);
+  }
+}
+/* Hareket azaltma: nabız yok, parıltı sabit kalır (özgüllük, parıltı kuralıyla aynı) */
+@media (prefers-reduced-motion: reduce) {
+  .pt-cell.cur,
+  .pt-stage.is-fb .pt-cell.cur.ok,
+  .pt-stage.is-fb .pt-cell.cur.bad { animation: none; }
+}
+@media (max-width: 640px) {
+  .pt-card { padding: 10px; }
+}
