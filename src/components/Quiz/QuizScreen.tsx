@@ -1,8 +1,7 @@
 import React from 'react';
 import { QuestionItem, AnswerMode, AnswerResult } from '../../types/quiz';
 import { QuizProgress } from '../../hooks/useQuizSession';
-import { ELEMENT_CATEGORIES } from '../../data/elements';
-import { COMPOUND_CATEGORIES } from '../../data/compounds';
+import { TOPIC_MAP } from '../../data/topics';
 import { QuestionCard } from './QuestionCard';
 import { FeedbackCard } from '../Feedback/FeedbackCard';
 import { PeriodicTableView } from '../PeriodicTable/PeriodicTableView';
@@ -51,8 +50,10 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
   onFinish,
   onToggleTable
 }) => {
-  const isCompound = question.quiz === 'compound';
-  const categories = isCompound ? COMPOUND_CATEGORIES : ELEMENT_CATEGORIES;
+  const topicInfo = TOPIC_MAP.get(question.quiz);
+  const categories = topicInfo?.categories || [];
+  const isElement = question.quiz === 'element';
+
   const isFiniteTotal = Number.isFinite(progress.total);
   const pct = isFiniteTotal && progress.total > 0
     ? Math.min(100, (progress.freshAnswered / progress.total) * 100)
@@ -63,6 +64,12 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
       {/* Üst Bar */}
       <div className="topbar">
         <div className="stats">
+          <div className="stat">
+            <span className="stat-label">Konu</span>
+            <span className="stat-value" style={{ fontSize: '15px', color: topicInfo?.badgeColor || 'var(--text)' }}>
+              {topicInfo?.icon} {topicInfo?.title}
+            </span>
+          </div>
           <div className="stat">
             <span className="stat-label">İlerleme</span>
             <span className="stat-value">
@@ -80,7 +87,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
         </div>
 
         <div className="topbar-actions">
-          {!isCompound && (
+          {isElement && (
             <button
               type="button"
               className="btn ghost small"
@@ -122,9 +129,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
       />
 
       {/* Periyodik Tablo (Element testinde açıksa) */}
-      {!isCompound && showPeriodicTable && (
+      {isElement && showPeriodicTable && (
         <PeriodicTableView
-          currentZ={question.data.z}
+          currentZ={Number(question.id)}
           isFeedback={questionState === 'feedback'}
           feedbackOk={lastFeedback?.full ?? false}
         />

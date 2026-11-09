@@ -1,7 +1,5 @@
 import React from 'react';
 import { SessionResult } from '../../types/quiz';
-import { ELEMENT_BY_Z } from '../../data/elements';
-import { COMPOUND_BY_Z } from '../../data/compounds';
 import { KeyBadge } from '../Common/KeyBadge';
 import { formatFormula } from '../../utils/text';
 
@@ -18,15 +16,14 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   onStartMissed,
   onGoToSetup
 }) => {
-  const isCompound = result.quiz === 'compound';
   const n = result.answered;
   const pct = n > 0 ? Math.round((result.full / n) * 100) : 0;
   const hasMissed = result.missed.length > 0;
-  const showCatBox = !isCompound || result.includeCompoundType;
+  const showCatBox = result.includeCompoundType && result.catOk > 0;
 
   return (
     <section id="view-result">
-      <h2 className="page-title">Sonuç</h2>
+      <h2 className="page-title">Sonuç — {result.topicTitle}</h2>
 
       <div className="card res-hero">
         <div className="res-pct">{pct}%</div>
@@ -42,19 +39,19 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
         <div className="res-grid">
           <div className="res-box">
-            <span>{isCompound ? 'Cevap doğru' : 'İsim doğru'}</span>
+            <span>Cevap doğru</span>
             <strong>{result.nameOk} / {n}</strong>
           </div>
 
           {showCatBox ? (
             <div className="res-box">
-              <span>Tür doğru</span>
+              <span>Tür / Kategori doğru</span>
               <strong>{result.catOk} / {n}</strong>
             </div>
           ) : (
             <div className="res-box">
-              <span>Mod</span>
-              <strong style={{ fontSize: '15px', color: 'var(--muted)' }}>Türsüz Mod</strong>
+              <span>Konu</span>
+              <strong style={{ fontSize: '15px', color: 'var(--accent)' }}>{result.topicTitle}</strong>
             </div>
           )}
 
@@ -73,75 +70,32 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       {/* Yanlış Yapılan Sorular Listesi */}
       <div className="card">
         <h3 className="section-title">
-          Yanlış yaptığın {isCompound ? 'bileşikler' : 'elementler'} ({result.missed.length})
+          Yanlış Yaptığın Maddeler ({result.missed.length})
         </h3>
 
         <ul className="miss-list">
           {hasMissed ? (
-            result.missed.map(m => {
-              const el = !isCompound ? ELEMENT_BY_Z[m.z] : null;
-              const c = isCompound ? COMPOUND_BY_Z[m.z] : null;
-
-              if (isCompound && c) {
-                return (
-                  <li key={m.z} className="miss is-compound">
-                    <div>
-                      <div className="miss-top">
-                        <span className="miss-name">{c.disp}</span>
-                        <span className="miss-meta">{c.names[0]}</span>
-                        <span className={`pill ${m.resolved ? 'ok' : 'bad'}`}>
-                          {m.resolved ? 'Tekrarda doğru' : 'Yanlış'}
-                        </span>
-                      </div>
-                      {result.includeCompoundType && (
-                        <div className="miss-line">
-                          <span className="k">Doğru tür:</span> {c.c}
-                        </div>
-                      )}
-                      <div className="miss-line">
-                        <span className="k">Senin cevabın:</span> {formatFormula(m.typed) || '—'}
-                        {result.includeCompoundType && m.pickedCat && (
-                          <> &nbsp;·&nbsp; <span className="k">Seçtiğin tür:</span> {m.pickedCat}</>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                );
-              }
-
-              if (!isCompound && el) {
-                return (
-                  <li key={m.z} className="miss">
-                    <div className="miss-sym">{el.s}</div>
-                    <div>
-                      <div className="miss-top">
-                        <span className="miss-name">{el.names[0]}</span>
-                        <span className="miss-meta">Atom No {el.z}</span>
-                        {el.names.length > 1 && (
-                          <span className="miss-meta">
-                            Ayrıca: {el.names.slice(1).join(', ')}
-                          </span>
-                        )}
-                        <span className={`pill ${m.resolved ? 'ok' : 'bad'}`}>
-                          {m.resolved ? 'Tekrarda doğru' : 'Yanlış'}
-                        </span>
-                      </div>
-                      <div className="miss-line">
-                        <span className="k">Doğru tür:</span> {el.c}
-                      </div>
-                      <div className="miss-line">
-                        <span className="k">Senin cevabın:</span> {m.typed || '—'}
-                        {m.pickedCat && (
-                          <> &nbsp;·&nbsp; <span className="k">Seçtiğin tür:</span> {m.pickedCat}</>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                );
-              }
-
-              return null;
-            })
+            result.missed.map((m, idx) => (
+              <li key={String(m.z) + idx} className="miss is-compound">
+                <div>
+                  <div className="miss-top">
+                    <span className="miss-name">{m.prompt}</span>
+                    <span className={`pill ${m.resolved ? 'ok' : 'bad'}`}>
+                      {m.resolved ? 'Tekrarda doğru' : 'Yanlış'}
+                    </span>
+                  </div>
+                  <div className="miss-line">
+                    <span className="k">Doğru cevap:</span> {m.correctText}
+                  </div>
+                  <div className="miss-line">
+                    <span className="k">Senin cevabın:</span> {formatFormula(m.typed) || '—'}
+                    {m.pickedCat && (
+                      <> &nbsp;·&nbsp; <span className="k">Seçtiğin tür:</span> {m.pickedCat}</>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))
           ) : (
             <li className="empty">
               {result.answers > 0

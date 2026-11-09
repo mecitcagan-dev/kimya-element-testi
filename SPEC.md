@@ -1,123 +1,78 @@
-# Spec: Kimya Element & Bileşik Testi Uygulaması Revizyonu
+# Spec: TYT & AYT Kimya Kapsamlı Ezber Modülleri ve Kategori Mimarisi
 
 ## 1. Objective
-Kimya öğrencileri (özellikle TYT/AYT ve lise kimya müfredatı) için ilk 36 element ve yaygın bileşikleri öğreten web uygulamasının React + Vite + TypeScript ile modernize edilmesi, aşağıdaki yeni özelliklerin kazandırılması:
-1. **Bileşiklerde Türsüz Mod (Tür Zorunluluğu Olmadan Çözebilme):** Öğrencinin asit/baz/tuz/oksit ayrımı yapmadan yalnızca formül ve yaygın ad eşleştirmesine odaklanabilmesi.
-2. **Bileşiklerde Tam Seçenekli (Multiple-Choice) Mod:** Bileşik sorularında yazma zorunluluğu olmadan 4 şıktan birini seçerek (Q, W, E, R veya 1, 2, 3, 4 tuşlarıyla / dokunarak) hızlı pratik yapabilmesi.
-3. **Öğrenci Dostu Deneyim:** Zayıf noktaları tespit etme, yanlış yapılan soruları tekrar sorma, formülleri alt simgeli ($H_2SO_4$, $Ca(OH)_2$) şık ve okunaklı biçimde sunma, klavye kısayolları ve kesintisiz odak.
-4. **Genişletilebilir Mimari:** Yeni kimya konuları eklenmeden yalnızca element ve bileşik konularına odaklanan, ancak ileride yeni kimya test modülleri eklemeyi kolaylaştıran modüler TypeScript mimarisi.
+Kimya öğrencileri için uygulamanın TYT, AYT ve TYT+AYT olmak üzere 3 ana sınav kategorisine ayrılması; her kategoride ÖSYM ve MEB müfredatında yer alan kilit ezber konularının oyunlaştırılmış, klavye dostu ve öğrenci odaklı bir modül yapısıyla sunulması.
+
+### Kategori ve Modül Haritası:
+1. **TYT + AYT (Ortak Temel Konular):**
+   - `element`: İlk 36 Element (Sembol, Ad, Periyot, Grup, Kategori)
+   - `compound`: Yaygın Bileşikler (Formül, Yaygın Ad, Türlü/Türsüz mod)
+   - `polyatomic`: Çok Atomlu İyonlar / Kökler (Katyonlar & Anyonlar: $NH_4^+, OH^-, NO_3^-, SO_4^{2-}, CO_3^{2-}, PO_4^{3-}$, vb. - Formül, Ad, Yük)
+   - `safety`: Kimya Güvenlik Piktogramları (Yanıcı, Yakıcı, Korozif, Toksik, Tahriş Edici, vb. - Sembol, Anlam, Önlem)
+
+2. **TYT (Temel Yeterlilik Testi):**
+   - `lab`: Laboratuvar Malzemeleri (Beherglas, Erlenmayer, Mezür, Büret, Pipet, Ayırma Hunisi, vb. - Şekil, İşlev, Kullanım)
+   - `indicators`: Asit-Baz İndikatörleri (Turnusol, Fenolftalein, Metil Oranj, Bromtimol Mavisi - Asit/Nötr/Baz Renkleri)
+   - `alchemists`: Simyadan Kimyaya / Bilim İnsanları (Empedokles, Democritus, Aristo, Cabir bin Hayyan, Ebubekir er-Razi, Robert Boyle, Lavoisier)
+
+3. **AYT (Alan Yeterlilik Testi):**
+   - `valence`: Değişken Değerlikli Metaller (Demir, Bakır, Cıva, Kalay, Kurşun, Krom, Mangan vb. - Değerlikler ve Romen Rakamı Kuralları)
+   - `functional_groups`: Organik Fonksiyonel Gruplar (Alkol, Eter, Aldehit, Keton, Karboksilik Asit, Ester, Amin, Amit - Yapı, Genel Formül, Sonek)
+   - `organic_common`: Yaygın Organik Bileşikler (Asetilen, Formaldehit, Aseton, Formik asit, Gliserin, Benzen, Fenol, Anilin)
 
 ## 2. Tech Stack
 - **Framework:** React 19 / Vite 6
 - **Dil:** TypeScript 5.7+ (Strict Mode)
-- **Stil:** CSS Variables & Koyu Tema odaklı modern UI (mevcut tasarım diline sadık kalarak daha temiz ve yüksek performanslı)
-- **Test:** Vitest (Birim testleri, soru motoru testleri, cevap doğrulama testleri)
+- **Stil:** CSS Variables & Dark Theme UI
+- **Test:** Vitest + React Testing Library
 
-## 3. Commands
-- `npm run dev`: Geliştirme sunucusunu başlatır (`localhost:5173`)
-- `npm run build`: TypeScript derlemesi yapar ve `dist/` klasörüne statik varlıkları üretir
-- `npm run preview`: Üretilen build'i yerel sunucuda önizler
-- `npm test`: Vitest test paketini çalıştırır
-- `npm run typecheck`: `tsc --noEmit` ile tüm tipleri doğrular
+## 3. Architecture & Data Model
+Unified Quiz Data Interface:
+```ts
+export type ExamCategory = 'all' | 'tyt_ayt' | 'tyt' | 'ayt';
 
-## 4. Project Structure
-```
-kimyaatom/
-├── CLAUDE.md
-├── SPEC.md
-├── tasks/
-│   ├── plan.md
-│   └── todo.md
-├── package.json
-├── tsconfig.json
-├── tsconfig.node.json
-├── vite.config.ts
-├── index.html
-├── src/
-│   ├── types/
-│   │   ├── chemistry.ts      # Element, Compound, Category tip tanımları
-│   │   └── quiz.ts           # QuizConfig, Question, SessionState, Stat tipleri
-│   ├── data/
-│   │   ├── elements.ts       # 36 Element verisi, periyot, grup, kategoriler
-│   │   └── compounds.ts      # 18 Yaygın bileşik verisi, türler, formüller
-│   ├── utils/
-│   │   ├── text.ts           # Türkçe harf normalizasyonu, formül formatlayıcı (H2O -> H₂O)
-│   │   ├── random.ts         # shuffle, rastgele sayı üreticisi
-│   │   └── storage.ts        # localStorage yardımcıları (istatistik ve ayar saklama)
-│   ├── engine/
-│   │   ├── quizEngine.ts     # Soru oluşturma, seçenek üretme, cevap değerlendirme
-│   │   └── statsEngine.ts    # Hata geçmişi ve zayıf nokta hesaplamaları
-│   ├── hooks/
-│   │   ├── useQuizSession.ts # Test oturumu durum yönetimi
-│   │   └── useKeyboard.ts    # Global klavye kısayolları yönetimi
-│   ├── components/
-│   │   ├── Setup/
-│   │   │   ├── SetupScreen.tsx
-│   │   │   └── SegmentGroup.tsx
-│   │   ├── Quiz/
-│   │   │   ├── QuizScreen.tsx
-│   │   │   ├── QuestionCard.tsx
-│   │   │   ├── OptionGrid.tsx
-│   │   │   └── CategoryGrid.tsx
-│   │   ├── Feedback/
-│   │   │   └── FeedbackCard.tsx
-│   │   ├── Result/
-│   │   │   └── ResultScreen.tsx
-│   │   ├── PeriodicTable/
-│   │   │   └── PeriodicTableModal.tsx
-│   │   └── Common/
-│   │       ├── FormulaText.tsx
-│   │       └── KeyBadge.tsx
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-└── tests/
-    ├── text.test.ts
-    ├── quizEngine.test.ts
-    └── statsEngine.test.ts
-```
-
-## 5. Code Style
-- **İsimlendirme:** PascalCase bileşenler (`QuizScreen`), camelCase fonksiyonlar ve değişkenler (`formatFormula`), UPPER_CASE sabitler (`COMPOUNDS`).
-- **Saf Fonksiyonlar:** Engine ve utils fonksiyonları DOM'dan ve yan etkilerden bağımsız saf fonksiyonlar olmalıdır.
-- **Tipler:** Her prop ve fonksiyon dönüş değeri açıkça tiplendirilmelidir.
-```tsx
-// Örnek: FormulaText bileşeni
-interface FormulaTextProps {
-  formula: string;
-  className?: string;
+export interface TopicDefinition {
+  id: string;
+  title: string;
+  category: 'tyt_ayt' | 'tyt' | 'ayt';
+  icon: string;
+  description: string;
+  questionCountDefault: number;
+  hasTypeToggle?: boolean;      // Bileşiklerdeki gibi türlü/türsüz desteği
+  directions?: { id: string; label: string; keyBadge?: string }[];
+  categories?: { key: string; rgb: string }[];
 }
 
-export function FormulaText({ formula, className }: FormulaTextProps) {
-  return (
-    <span className={className}>
-      {formatFormulaWithSub(formula)}
-    </span>
-  );
+export interface QuizItem {
+  id: string | number;
+  prompt: string;               // Ekranda gösterilen soru (sembol, formül, isim veya piktogram)
+  promptSub?: string;           // Alt başlık (örn: "Atom No: 24" veya "Katyon")
+  answer: string;               // Doğru cevap
+  synonyms?: string[];          // Alternatif kabul edilen cevaplar
+  category?: string;            // Tür veya kategori
+  infoChips: { label: string; value: string }[];
+  hint?: string;
 }
 ```
 
-## 6. Testing Strategy
-- Vitest ile:
-  1. `text.ts`: Türkçe karakter dönüştürme, formül karşılaştırma ve alt simge üretimi.
-  2. `quizEngine.ts`: Soru çekme, seçenek üretimi (çeldiricilerin benzersizliği ve doğruluğu), türsüz modda cevap kontrolü, tür içeren modda cevap kontrolü.
-  3. `statsEngine.ts`: Zayıf noktaların tespiti ve hata oranlarının doğru kaydedilmesi.
+## 4. Commands
+- `npm run dev`: Geliştirme sunucusu
+- `npm run build`: Production build (`dist/`)
+- `npm test`: Vitest birim ve entegrasyon testleri
+- `npm run typecheck`: TypeScript tip denetimi
+- `npm run deploy`: GitHub Pages yayını
 
-## 7. Boundaries
+## 5. Testing Strategy
+- Her yeni konunun veri seti (data integrity) test edilecek (boş alan yok, benzersiz ID'ler, doğru formatlama).
+- Quiz motoru her 10 konuyu hatasız çeldirici ve soru üretecek şekilde test edilecek.
+- Kategori sekme geçişleri (`Tümü`, `TYT + AYT`, `TYT`, `AYT`) React Testing Library ile test edilecek.
+- Zayıf noktalar ve hata istatistikleri test edilecek.
+
+## 6. Boundaries
 - **Always:**
-  - Türsüz mod seçildiğinde kullanıcıdan tür istemeyi engelle, sadece formül/isim cevabını zorunlu tut.
-  - Seçenekli modda klavye kısayollarını (Q, W, E, R ve 1, 2, 3, 4) destekle.
-  - Mobil cihazlarda ekran kaymasını engelle, rahat tıklanabilir butonlar sağla.
-- **Ask First:**
-  - Yeni bir kimya konusu (örneğin mol, asit-baz çözeltileri, vb.) ekleme (Kullanıcı kesin bir dille şu an sadece element ve bileşik istedi).
+  - Mevcut Element ve Bileşik testlerinin kısayolları ve çalışma mantığı korunacak.
+  - Bileşiklerdeki "Türsüz Mod" ve "Seçenekli Mod" her zaman çalışacak.
+  - Her yeni konu için hızlı başvuru / inceleme modalı (`📖 Konu Listesini İncele`) sağlanacak.
 - **Never:**
-  - Eski çalışır vaziyetteki element test mantığını bozma.
-  - Ağır CSS/UI kütüphaneleri (MUI, Ant Design vb.) ekleyerek performansı düşürme.
-
-## 8. Success Criteria
-1. Kullanıcı bileşik testini kurarken "Tür Bilgisi: Dahil / Türsüz" (veya "Tür Sorulsun mu?") seçeneğini seçebilmeli.
-2. "Türsüz" seçildiğinde soru ekranında tür butonları gizlenmeli veya devre dışı olmalı; cevabı gönderirken tür zorunluluğu aranmamalı.
-3. Bileşiklerde "Seçenekli" mod seçildiğinde 4 seçenek (A, B, C, D / Q, W, E, R) sunulmalı ve tek tuşla veya tıkla seçim yapılabilmeli.
-4. Element testi mevcut tüm özellikleriyle (1-18, 19-36, 1-36 aralıkları, 8 kategori, periyodik tablo görünümü) eksiksiz çalışmalı.
-5. Zayıf noktalar ve hata istatistikleri hem element hem bileşik için hatasız çalışmalı.
-6. `npm run build` hatasız sıfır uyarı ile tamamlanmalı ve `npm test` tüm testleri geçmeli.
+  - TypeScript `any` kullanma.
+  - Öğrenciyi yavaşlatacak ağır kütüphaneler ekleme.

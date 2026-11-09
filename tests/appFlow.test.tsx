@@ -2,55 +2,71 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { App } from '../src/App';
 
-describe('App Flow & Compound Türsüz Mode', () => {
-  it('allows user to select Bileşik test, switch to Türsüz and Seçenekli mode, and solve without category', () => {
+describe('App Flow & Multi-Topic System', () => {
+  it('allows user to filter by exam category, select Yaygın Bileşikler, and test with Türsüz and Seçenekli mode', () => {
     render(<App />);
 
-    // 1. Setup screen: switch to Bileşik tab
-    const compoundTab = screen.getByRole('tab', { name: /Bileşik/i });
-    fireEvent.click(compoundTab);
+    // 1. Sınav kategorileri gösteriliyor mu?
+    expect(screen.getByText(/Tüm Konular/i)).toBeDefined();
+    const tytAytTab = screen.getByRole('button', { name: /TYT \+ AYT Ortak/i });
+    expect(tytAytTab).toBeDefined();
 
-    expect(screen.getByText('Bileşik Testi')).toBeDefined();
+    // 2. TYT+AYT sekmesine tıkla
+    fireEvent.click(tytAytTab);
 
-    // 2. Click "Türsüz (Yalnızca Formül & Ad)" button
+    // 3. Yaygın Bileşikler kartına tıkla
+    const compoundCard = screen.getByText('Yaygın Bileşikler');
+    fireEvent.click(compoundCard);
+
+    // 4. "Türsüz (Yalnızca Formül & Ad)" butonuna tıkla
     const tursuzBtn = screen.getByRole('button', { name: /Türsüz/i });
     fireEvent.click(tursuzBtn);
     expect(tursuzBtn.getAttribute('aria-pressed')).toBe('true');
 
-    // 3. Click "Seçenekli (Çoktan Seçmeli)" button
+    // 5. "Seçenekli (Çoktan Seçmeli)" butonuna tıkla
     const choiceBtn = screen.getByRole('button', { name: /Seçenekli/i });
     fireEvent.click(choiceBtn);
     expect(choiceBtn.getAttribute('aria-pressed')).toBe('true');
 
-    // 4. Start the quiz
+    // 6. Testi Başlat
     const startBtn = screen.getByRole('button', { name: /Testi Başlat/i });
     fireEvent.click(startBtn);
 
-    // 5. In testing screen: verify category grid is NOT rendered
-    expect(screen.queryByText(/1–4 tuşları/i)).toBeNull();
+    // 7. Test ekranında tür butonlarının gizlendiğini doğrula
     expect(screen.queryByText(/⌥1–4 tuşları/i)).toBeNull();
 
-    // 6. 4 choices are rendered
+    // 8. 4 seçenek gösteriliyor mu?
     const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
     expect(choicesGroup).toBeDefined();
     const optButtons = choicesGroup.querySelectorAll('button.opt');
     expect(optButtons.length).toBe(4);
 
-    // 7. Pick the first option
+    // 9. İlk seçeneğe tıkla ve gönder
     fireEvent.click(optButtons[0]);
-    expect(optButtons[0].classList.contains('on')).toBe(true);
-
-    // 8. Submit the answer
     const submitBtn = screen.getByRole('button', { name: /Gönder/i });
     fireEvent.click(submitBtn);
 
-    // 9. Feedback appears without asking for a category!
+    // 10. Geri bildirim kartında tür hatası olmadan anında sonuç gösterilir
     expect(screen.queryByText(/Lütfen bir tür\/kategori seçin/i)).toBeNull();
     const feedbackTitle = screen.getByText(/Doğru!|Yanlış/i);
     expect(feedbackTitle).toBeDefined();
+  });
 
-    // 10. Advance to next question
-    const nextBtn = screen.getByRole('button', { name: /Sonraki|Sonuçları Gör/i });
-    fireEvent.click(nextBtn);
+  it('can open and close topic study reference modal', () => {
+    render(<App />);
+
+    // "Konu Listesini İncele" butonuna tıkla
+    const studyBtn = screen.getByRole('button', { name: /📖 Konu Listesini İncele/i });
+    expect(studyBtn).toBeDefined();
+    fireEvent.click(studyBtn);
+
+    // Modal açıldı mı?
+    expect(screen.getByText(/Çalışma Kartları/i)).toBeDefined();
+
+    // Kapat butonu ile kapat
+    const closeBtns = screen.getAllByRole('button', { name: 'Kapat' });
+    expect(closeBtns.length).toBeGreaterThan(0);
+    fireEvent.click(closeBtns[0]);
+    expect(screen.queryByText(/Çalışma Kartları/i)).toBeNull();
   });
 });

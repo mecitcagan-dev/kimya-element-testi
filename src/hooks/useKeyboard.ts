@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { QuizTopic } from '../types/chemistry';
+import { TopicId } from '../types/topics';
 import { QuestionItem, AnswerMode } from '../types/quiz';
 
 interface UseKeyboardProps {
   status: 'setup' | 'testing' | 'result';
-  topic: QuizTopic;
+  topic: TopicId;
   question: QuestionItem | null;
   questionState: 'asking' | 'feedback';
   mode: AnswerMode;

@@ -1,6 +1,7 @@
 // Kimya temel veri tipleri
 
 export type QuizTopic = 'element' | 'compound';
+export type ElementRangeKey = '1-18' | '19-36' | '1-36';
 
 export interface ElementData {
   z: number;              // Atom numarası (1–36)

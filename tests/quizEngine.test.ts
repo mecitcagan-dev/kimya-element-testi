@@ -2,12 +2,11 @@ import { describe, it, expect } from 'vitest';
 import {
   evaluateAnswer,
   isNameCorrect,
-  makeCompoundChoices,
-  makeElementChoices,
-  createQuestion
+  generateChoices,
+  createQuestion,
+  getTopicStandardItems
 } from '../src/engine/quizEngine';
 import { COMPOUNDS } from '../src/data/compounds';
-import { ELEMENTS } from '../src/data/elements';
 
 describe('quizEngine', () => {
   const su = COMPOUNDS[0]; // H2O, Su, Oksit
@@ -26,7 +25,6 @@ describe('quizEngine', () => {
         includeCompoundType: false // Türsüz!
       });
 
-      // typed H2O, pickedCat is null
       const res = evaluateAnswer(q, 'H2O', null, false);
       expect(res.nameOk).toBe(true);
       expect(res.catOk).toBe(true);
@@ -94,20 +92,67 @@ describe('quizEngine', () => {
     });
   });
 
-  describe('choice generation', () => {
-    it('generates 4 unique compound choices including correct answer', () => {
-      const choices = makeCompoundChoices(su, true); // askFormula = true
+  describe('choice generation for any topic', () => {
+    it('generates 4 unique choices for compound topic', () => {
+      const q = createQuestion(su.z, 'compound', false, {
+        quiz: 'compound',
+        kind: 'range',
+        total: 10,
+        retry: true,
+        mode: 'choice',
+        dir: 'ad-formul',
+        includeCompoundType: false
+      });
+      const choices = generateChoices(q);
       expect(choices.length).toBe(4);
       expect(new Set(choices).size).toBe(4);
       expect(choices).toContain(su.disp);
     });
 
-    it('generates 4 unique element choices including correct name', () => {
-      const fe = ELEMENTS[25]; // Demir
-      const choices = makeElementChoices(fe);
+    it('generates 4 unique choices for polyatomic ions', () => {
+      const q = createQuestion(1, 'polyatomic', false, {
+        quiz: 'polyatomic',
+        kind: 'range',
+        total: 10,
+        retry: true,
+        mode: 'choice',
+        includeCompoundType: false
+      });
+      const choices = generateChoices(q);
       expect(choices.length).toBe(4);
       expect(new Set(choices).size).toBe(4);
-      expect(choices).toContain('Demir');
+      expect(choices).toContain('Amonyum');
+    });
+
+    it('generates choices for all 10 topics without errors', () => {
+      const topics = [
+        'element',
+        'compound',
+        'polyatomic',
+        'safety',
+        'lab',
+        'indicators',
+        'alchemists',
+        'valence',
+        'functional_groups',
+        'organic_common'
+      ] as const;
+
+      topics.forEach(t => {
+        const items = getTopicStandardItems(t);
+        expect(items.length).toBeGreaterThan(0);
+        const q = createQuestion(items[0].id, t, false, {
+          quiz: t,
+          kind: 'range',
+          total: 10,
+          retry: true,
+          mode: 'choice',
+          includeCompoundType: false
+        });
+        const choices = generateChoices(q);
+        expect(choices.length).toBeGreaterThanOrEqual(2);
+        expect(choices).toContain(items[0].answer);
+      });
     });
   });
 

@@ -1,57 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { QuizTopic } from '../../types/chemistry';
-import { AnswerMode, CompoundDirection, ElementRangeKey, QuizConfig } from '../../types/quiz';
+import { TopicId, ExamCategory } from '../../types/topics';
+import { AnswerMode, ElementRangeKey, QuizConfig } from '../../types/quiz';
+import { ALL_TOPICS, TOPIC_MAP } from '../../data/topics';
 import { SegmentGroup } from './SegmentGroup';
 import { KeyBadge } from '../Common/KeyBadge';
 import { readStored, writeStored, KEYS } from '../../utils/storage';
-import { getWeakElementZs, getWeakCompoundZs } from '../../engine/statsEngine';
-import { ELEMENT_BY_Z } from '../../data/elements';
-import { COMPOUND_BY_Z } from '../../data/compounds';
+import { getWeakTopicIds } from '../../engine/statsEngine';
 
 interface SetupScreenProps {
   onStartQuiz: (cfg: QuizConfig) => void;
   onOpenPeriodicTable: () => void;
-  onOpenCompoundReference: () => void;
+  onOpenTopicReference: (topicId: TopicId) => void;
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({
   onStartQuiz,
   onOpenPeriodicTable,
-  onOpenCompoundReference
+  onOpenTopicReference
 }) => {
-  // Tab seçimi (Element | Bileşik)
-  const [tab, setTab] = useState<QuizTopic>(() => {
+  // Sınav kategorisi filtresi: 'all' | 'tyt_ayt' | 'tyt' | 'ayt'
+  const [examCat, setExamCat] = useState<ExamCategory>('all');
+
+  // Seçili konu ID'si
+  const [selectedTopicId, setSelectedTopicId] = useState<TopicId>(() => {
     const saved = readStored(KEYS.tab);
-    return saved === 'compound' ? 'compound' : 'element';
+    if (saved && TOPIC_MAP.has(saved as TopicId)) {
+      return saved as TopicId;
+    }
+    return 'element';
   });
 
-  // Element ayarları
+  // Element özel aralık ayarı
   const [elementRange, setElementRange] = useState<ElementRangeKey>('1-36');
-  const [elementCount, setElementCount] = useState<number | 'inf'>(36);
 
-  // Bileşik ayarları
-  const [compoundDir, setCompoundDir] = useState<CompoundDirection>(() => {
-    const saved = readStored(KEYS.compoundDirection);
-    return (saved === 'ad-formul' || saved === 'formul-ad' || saved === 'karisik')
-      ? saved
-      : 'ad-formul';
-  });
-  const [compoundCount, setCompoundCount] = useState<number | 'inf'>(18);
+  // Yön seçimi (bileşik, kökler veya organik için)
+  const [direction, setDirection] = useState<string>('ad-formul');
 
-  // YENİ: Bileşiklerde tür sorulsun mu? (Varsayılan true, ama öğrenci türsüz seçebilir)
+  // Bileşiklerde tür sorulsun mu?
   const [includeCompoundType, setIncludeCompoundType] = useState<boolean>(() => {
     const saved = readStored(KEYS.compoundIncludeType);
     return saved !== null ? saved === 'true' : true;
   });
 
   // Ortak ayarlar
+  const [questionCount, setQuestionCount] = useState<number | 'inf'>(20);
   const [answerMode, setAnswerMode] = useState<AnswerMode>(() => {
     const saved = readStored(KEYS.answerMode);
     if (saved === 'type' || saved === 'choice') return saved;
     try {
       return window.matchMedia('(pointer: coarse)').matches ? 'choice' : 'type';
     } catch {
-      return 'type';
+      return 'choice';
     }
   });
   const [retryWrong, setRetryWrong] = useState<boolean>(true);
@@ -60,28 +59,27 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
     return saved !== null ? saved === 'true' : true;
   });
 
-  // Zayıf noktalar
-  const [weakElements, setWeakElements] = useState<number[]>([]);
-  const [weakCompounds, setWeakCompounds] = useState<number[]>([]);
+  // Seçili konuya ait zayıf noktalar
+  const [weakItems, setWeakItems] = useState<(string | number)[]>([]);
+
+  const selectedTopic = TOPIC_MAP.get(selectedTopicId) || ALL_TOPICS[0];
 
   useEffect(() => {
-    setWeakElements(getWeakElementZs());
-    setWeakCompounds(getWeakCompoundZs());
-  }, [tab]);
+    const weak = getWeakTopicIds(selectedTopicId);
+    setWeakItems(weak);
+    if (selectedTopic.directions && selectedTopic.directions.length > 0) {
+      setDirection(selectedTopic.directions[0].id);
+    }
+  }, [selectedTopicId, selectedTopic]);
 
-  const handleTabChange = (newTab: QuizTopic) => {
-    setTab(newTab);
-    writeStored(KEYS.tab, newTab);
+  const handleTopicSelect = (id: TopicId) => {
+    setSelectedTopicId(id);
+    writeStored(KEYS.tab, id);
   };
 
   const handleModeChange = (mode: AnswerMode) => {
     setAnswerMode(mode);
     writeStored(KEYS.answerMode, mode);
-  };
-
-  const handleCompoundDirChange = (dir: CompoundDirection) => {
-    setCompoundDir(dir);
-    writeStored(KEYS.compoundDirection, dir);
   };
 
   const handleIncludeCompoundTypeChange = (include: boolean) => {
@@ -90,70 +88,43 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
   };
 
   const handleStart = () => {
-    const isCompound = tab === 'compound';
-    const totalCount = isCompound
-      ? (compoundCount === 'inf' ? Infinity : compoundCount)
-      : (elementCount === 'inf' ? Infinity : elementCount);
-
+    const totalCount = questionCount === 'inf' ? Infinity : questionCount;
     onStartQuiz({
-      quiz: tab,
+      quiz: selectedTopicId,
       kind: 'range',
-      range: isCompound ? undefined : elementRange,
+      range: selectedTopicId === 'element' ? elementRange : undefined,
       total: totalCount,
       retry: retryWrong,
       mode: answerMode,
-      dir: isCompound ? compoundDir : undefined,
-      includeCompoundType: isCompound ? includeCompoundType : true
+      dir: direction,
+      includeCompoundType
     });
   };
 
   const handleStartWeak = () => {
-    const isCompound = tab === 'compound';
-    const list = isCompound ? weakCompounds : weakElements;
-    if (list.length === 0) return;
-
-    const totalCount = isCompound
-      ? (compoundCount === 'inf' ? Infinity : compoundCount)
-      : (elementCount === 'inf' ? Infinity : elementCount);
-
+    if (weakItems.length === 0) return;
+    const totalCount = questionCount === 'inf' ? Infinity : questionCount;
     onStartQuiz({
-      quiz: tab,
+      quiz: selectedTopicId,
       kind: 'weak',
-      zs: list,
-      total: Math.min(totalCount, list.length),
+      zs: weakItems,
+      total: Math.min(totalCount, weakItems.length),
       retry: retryWrong,
       mode: answerMode,
-      dir: isCompound ? compoundDir : undefined,
-      includeCompoundType: isCompound ? includeCompoundType : true
+      dir: direction,
+      includeCompoundType
     });
   };
 
-  const isCompound = tab === 'compound';
-  const weakCount = isCompound ? weakCompounds.length : weakElements.length;
+  // Filtrelenen konular
+  const filteredTopics = ALL_TOPICS.filter(t => {
+    if (examCat === 'all') return true;
+    return t.examCategory === examCat;
+  });
 
   return (
     <section id="view-setup">
-      <div className="tabs" role="tablist" aria-label="Test konusu">
-        <button
-          type="button"
-          className="tab"
-          role="tab"
-          aria-selected={tab === 'element'}
-          onClick={() => handleTabChange('element')}
-        >
-          Element <KeyBadge label="1" />
-        </button>
-        <button
-          type="button"
-          className="tab"
-          role="tab"
-          aria-selected={tab === 'compound'}
-          onClick={() => handleTabChange('compound')}
-        >
-          Bileşik <KeyBadge label="2" />
-        </button>
-      </div>
-
+      {/* Hero Başlık */}
       <header className="hero">
         <svg className="atom" viewBox="0 0 64 64" aria-hidden="true">
           <g fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -163,17 +134,120 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           </g>
           <circle cx="32" cy="32" r="5" fill="#e5484d" />
         </svg>
-        <h1>{isCompound ? 'Bileşik Testi' : 'Element Testi'}</h1>
+        <h1>TYT & AYT Kimya Ezber Testi</h1>
         <p>
-          {isCompound
-            ? 'Yaygın bileşiklerin formüllerini, adlarını ve türlerini test et.'
-            : 'İlk 36 elementin sembolünü, Türkçe adını ve kategorisini test et.'}
+          YKS Kimya müfredatındaki kritik formülleri, kökleri, bileşikleri ve kavramları
+          oyun mantığıyla refleks haline getirin.
         </p>
       </header>
 
-      <div className="card setup">
+      {/* 1. Sınav Kategorisi Sekmeleri */}
+      <div className="exam-tabs" role="tablist" aria-label="Sınav kategorisi">
+        <button
+          type="button"
+          className={`exam-tab ${examCat === 'all' ? 'active' : ''}`}
+          onClick={() => setExamCat('all')}
+        >
+          Tüm Konular ({ALL_TOPICS.length})
+        </button>
+        <button
+          type="button"
+          className={`exam-tab ${examCat === 'tyt_ayt' ? 'active' : ''}`}
+          style={examCat === 'tyt_ayt' ? { borderColor: '#e5484d', color: '#ff8787' } : {}}
+          onClick={() => setExamCat('tyt_ayt')}
+        >
+          🔥 TYT + AYT Ortak (4)
+        </button>
+        <button
+          type="button"
+          className={`exam-tab ${examCat === 'tyt' ? 'active' : ''}`}
+          style={examCat === 'tyt' ? { borderColor: '#30a46c', color: '#69db7c' } : {}}
+          onClick={() => setExamCat('tyt')}
+        >
+          🧪 TYT Kimya (3)
+        </button>
+        <button
+          type="button"
+          className={`exam-tab ${examCat === 'ayt' ? 'active' : ''}`}
+          style={examCat === 'ayt' ? { borderColor: '#7950f2', color: '#b197fc' } : {}}
+          onClick={() => setExamCat('ayt')}
+        >
+          🧬 AYT Kimya (3)
+        </button>
+      </div>
+
+      {/* 2. Konu Seçim Kartları */}
+      <div className="topic-grid">
+        {filteredTopics.map(t => {
+          const isSelected = t.id === selectedTopicId;
+          return (
+            <div
+              key={t.id}
+              className={`topic-card ${isSelected ? 'selected' : ''}`}
+              onClick={() => handleTopicSelect(t.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter') handleTopicSelect(t.id); }}
+            >
+              <div>
+                <div className="topic-head">
+                  <div className="topic-title">
+                    <span>{t.icon}</span>
+                    <span>{t.title}</span>
+                  </div>
+                  <span
+                    className="topic-badge"
+                    style={{
+                      backgroundColor: `${t.badgeColor}18`,
+                      borderColor: `${t.badgeColor}55`,
+                      color: t.badgeColor
+                    }}
+                  >
+                    {t.tag}
+                  </span>
+                </div>
+                <p className="topic-desc">{t.description}</p>
+              </div>
+
+              <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="hint" style={{ fontSize: '11px' }}>
+                  {isSelected ? '✓ Seçili' : 'Seçmek için tıkla'}
+                </span>
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  style={{ padding: '4px 8px', fontSize: '11px' }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onOpenTopicReference(t.id);
+                  }}
+                >
+                  📖 İncele
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 3. Seçili Konunun Detay Kurulum Kartı */}
+      <div className="card setup" style={{ marginTop: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '22px' }}>{selectedTopic.icon}</span>
+            <strong style={{ fontSize: '18px' }}>{selectedTopic.title} Ayarları</strong>
+          </div>
+          <button
+            type="button"
+            className="btn secondary small"
+            onClick={() => onOpenTopicReference(selectedTopic.id)}
+          >
+            📖 Konu Listesini İncele
+          </button>
+        </div>
+
         {/* Element Aralık Seçimi */}
-        {!isCompound && (
+        {selectedTopicId === 'element' && (
           <div className="field">
             <div className="field-label">Aralık</div>
             <SegmentGroup<ElementRangeKey>
@@ -188,36 +262,37 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           </div>
         )}
 
-        {/* Bileşik Soru Yönü */}
-        {isCompound && (
+        {/* Çoklu Yön Seçimi Varsa */}
+        {selectedTopic.directions && selectedTopic.directions.length > 0 && (
           <div className="field">
-            <div className="field-label">Soru yönü</div>
-            <SegmentGroup<CompoundDirection>
-              options={[
-                { value: 'ad-formul', label: 'Ad → Formül', keyBadge: 'H' },
-                { value: 'formul-ad', label: 'Formül → Ad', keyBadge: 'J' },
-                { value: 'karisik', label: 'Karışık', keyBadge: 'K' }
-              ]}
-              value={compoundDir}
-              onChange={handleCompoundDirChange}
+            <div className="field-label">Soru Yönü</div>
+            <SegmentGroup<string>
+              columns={selectedTopic.directions.length === 2 ? 2 : 3}
+              options={selectedTopic.directions.map(d => ({
+                value: d.id,
+                label: d.label,
+                keyBadge: d.keyBadge
+              }))}
+              value={direction}
+              onChange={setDirection}
             />
           </div>
         )}
 
-        {/* YENİ: Bileşik Tür Seçimi (Türlü / Türsüz Mod) */}
-        {isCompound && (
+        {/* Bileşik Tür Seçimi (Türlü / Türsüz Mod) */}
+        {selectedTopic.hasTypeToggle && (
           <div className="field">
             <div className="field-label">
-              <span>Bileşik Türü (Asit/Baz/Tuz/Oksit)</span>
+              <span>{selectedTopic.typeToggleLabel || 'Kategori / Tür Seçimi'}</span>
               <span className="hint" style={{ fontWeight: 'normal' }}>
-                {includeCompoundType ? 'Tür seçimi istenir' : 'Yalnızca ad ve formül'}
+                {includeCompoundType ? 'Tür zorunluluğu var' : 'Türsüz - Yalnızca temel bilgi'}
               </span>
             </div>
             <SegmentGroup<string>
               columns={2}
               options={[
                 { value: 'false', label: 'Türsüz (Yalnızca Formül & Ad)', keyBadge: 'T' },
-                { value: 'true', label: 'Türleri Sor (Asit/Baz/Tuz)', keyBadge: 'Y' }
+                { value: 'true', label: 'Türleri Sor (Asit/Baz/Tuz/Oksit)', keyBadge: 'Y' }
               ]}
               value={String(includeCompoundType)}
               onChange={v => handleIncludeCompoundTypeChange(v === 'true')}
@@ -228,31 +303,17 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
         {/* Soru Sayısı */}
         <div className="field">
           <div className="field-label">Soru sayısı</div>
-          {!isCompound ? (
-            <SegmentGroup<number | 'inf'>
-              columns={4}
-              options={[
-                { value: 10, label: '10', keyBadge: 'A' },
-                { value: 20, label: '20', keyBadge: 'S' },
-                { value: 36, label: '36', keyBadge: 'D' },
-                { value: 'inf', label: 'Sonsuz', keyBadge: 'F' }
-              ]}
-              value={elementCount}
-              onChange={setElementCount}
-            />
-          ) : (
-            <SegmentGroup<number | 'inf'>
-              columns={4}
-              options={[
-                { value: 10, label: '10', keyBadge: 'A' },
-                { value: 20, label: '20', keyBadge: 'S' },
-                { value: 18, label: '18', keyBadge: 'D' },
-                { value: 'inf', label: 'Sonsuz', keyBadge: 'F' }
-              ]}
-              value={compoundCount}
-              onChange={setCompoundCount}
-            />
-          )}
+          <SegmentGroup<number | 'inf'>
+            columns={4}
+            options={[
+              { value: 10, label: '10', keyBadge: 'A' },
+              { value: 20, label: '20', keyBadge: 'S' },
+              { value: selectedTopic.defaultCount, label: String(selectedTopic.defaultCount), keyBadge: 'D' },
+              { value: 'inf', label: 'Sonsuz', keyBadge: 'F' }
+            ]}
+            value={questionCount}
+            onChange={setQuestionCount}
+          />
         </div>
 
         {/* Cevap Şekli: Yazarak / Seçenekli */}
@@ -281,18 +342,13 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
               onChange={e => setRetryWrong(e.target.checked)}
             />
             <span>
-              Yanlışları tekrar sor <KeyBadge label="R" />
+              Yanlışları test içinde tekrar sor <KeyBadge label="R" />
             </span>
           </label>
-          <p className="hint retry-hint">
-            {isCompound
-              ? 'Yanlış cevapladığın bileşik 3–5 soru sonra yeniden sorulur.'
-              : 'Yanlış cevapladığın element 3–5 soru sonra yeniden sorulur.'}
-          </p>
         </div>
 
-        {/* Periyodik Tablo / Referans Görünüm Butonları */}
-        {!isCompound ? (
+        {/* Periyodik Tablo (Element Konusunda) */}
+        {selectedTopic.hasPeriodicTable && (
           <div style={{ display: 'grid', gap: '8px' }}>
             <label className="check">
               <input
@@ -315,17 +371,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
               ⚛️ Periyodik Tabloyu İncele
             </button>
           </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              type="button"
-              className="btn secondary small"
-              style={{ flex: 1 }}
-              onClick={onOpenCompoundReference}
-            >
-              📖 Bileşik Listesini İncele
-            </button>
-          </div>
         )}
 
         {/* Başlat ve Zayıf Noktalar */}
@@ -336,19 +381,15 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           <button
             type="button"
             className="btn secondary block"
-            disabled={weakCount === 0}
+            disabled={weakItems.length === 0}
             onClick={handleStartWeak}
           >
-            Zayıf noktalarım ({weakCount}) <KeyBadge label="Z" />
+            Zayıf noktalarım ({weakItems.length}) <KeyBadge label="Z" />
           </button>
           <p className="hint center">
-            {weakCount > 0
-              ? `Hata geçmişine göre en çok yanlış yaptıkların: ${
-                  isCompound
-                    ? weakCompounds.map(z => COMPOUND_BY_Z[z]?.disp).join(', ')
-                    : weakElements.map(z => ELEMENT_BY_Z[z]?.s).join(', ')
-                }`
-              : 'Henüz hata kaydın yok. Birkaç test çözdükten sonra burada görünür.'}
+            {weakItems.length > 0
+              ? `${selectedTopic.title} konusunda hata yaptığın ${weakItems.length} madde zayıf noktalar listene alındı.`
+              : 'Bu konuda henüz hata kaydın yok. Test çözdükten sonra zayıf noktaların burada toplanır.'}
           </p>
         </div>
       </div>

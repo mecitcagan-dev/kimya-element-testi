@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { QuestionItem, AnswerMode, AnswerResult } from '../../types/quiz';
 import { CategoryInfo } from '../../types/chemistry';
-import { isFormulaAsk } from '../../engine/quizEngine';
 import { formatFormula } from '../../utils/text';
 import { OptionGrid } from './OptionGrid';
 import { CategoryGrid } from './CategoryGrid';
@@ -41,29 +40,19 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onSubmit
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const isCompound = question.quiz === 'compound';
-  const askFormula = isFormulaAsk(question);
   const answered = questionState === 'feedback';
-  const includeType = question.includeType;
+  const includeType = question.includeType && categories.length > 0;
 
-  // Soru metni ve görseli
-  const displaySymbol = !isCompound
-    ? (question.data as any).s
-    : askFormula
-    ? (question.data as any).names[0]
-    : (question.data as any).disp;
+  const displayPrompt = question.standard.prompt;
+  const promptSub = question.standard.promptSub;
 
-  const symbolClass = !isCompound
-    ? 'q-symbol'
-    : askFormula
+  // Uzun metinler (örn. laboratuvar malzemesi işlevi veya simyacı katkısı) için font boyutunu ayarla
+  const isLongPrompt = displayPrompt.length > 25;
+  const promptClass = isLongPrompt
     ? 'q-symbol is-name'
-    : 'q-symbol is-formula';
-
-  const placeholder = !isCompound
-    ? 'Elementin Türkçe adı'
-    : askFormula
-    ? 'Bileşiğin formülü'
-    : 'Bileşiğin Türkçe adı';
+    : displayPrompt.length > 10
+    ? 'q-symbol is-formula'
+    : 'q-symbol';
 
   // Otomatik odaklanma
   useEffect(() => {
@@ -74,7 +63,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
-    if (isCompound && askFormula) {
+    // Bileşikte formül soruluyorsa otomatik alt simge dönüştür
+    if (question.quiz === 'compound' && question.dir === 'ad-formul') {
       val = formatFormula(val);
     }
     onTypedChange(val);
@@ -87,48 +77,38 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     }
   };
 
-  // İpucu metni
-  let flowHint = '';
-  if (mode === 'choice') {
-    flowHint = includeType
-      ? `${askFormula ? 'Formülü' : 'Adı'} seç (Q, W, E, R) → 1–${categories.length} ile türü seç → Enter`
-      : 'Seçeneği seç (Q, W, E, R) → Enter';
-  } else {
-    flowHint = includeType
-      ? `${askFormula ? 'Formülü' : 'İsmi'} yaz → ${
-          isCompound ? '⌥1–4' : '1–8'
-        } ile türü seç → Enter`
-      : `${askFormula ? 'Formülü' : 'İsmi'} yaz → Enter`;
-  }
-
   return (
     <article className={`card q-card ${!includeType ? 'no-cats' : ''}`}>
-      {/* Atom Numarası (yalnızca elementte) */}
-      {!isCompound && (
-        <span className="q-num">{question.data.z}</span>
-      )}
-
       {/* Tekrar Sorusu Etiketi */}
       {question.retry && (
         <span className="q-tag">Tekrar</span>
       )}
 
-      {/* Soru Ana Gösterimi (Sembol / Ad / Formül) */}
-      <div className={symbolClass}>{displaySymbol}</div>
+      {/* Soru Ana Gösterimi */}
+      <div style={{ gridArea: 'sym', textAlign: 'center' }}>
+        <div className={promptClass} style={isLongPrompt ? { fontSize: 'clamp(20px, 4.5vw, 30px)', fontWeight: 700 } : {}}>
+          {displayPrompt}
+        </div>
+        {promptSub && (
+          <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '8px' }}>
+            {promptSub}
+          </div>
+        )}
+      </div>
 
       {/* Giriş Alanı veya Seçenekler */}
       <div className="q-input">
         {mode === 'type' ? (
           <>
             <label className="sr-only" htmlFor="user-answer-input">
-              {placeholder}
+              Cevabınız
             </label>
             <input
               id="user-answer-input"
               ref={inputRef}
               type="text"
-              placeholder={placeholder}
-              maxLength={40}
+              placeholder="Cevabınızı yazın..."
+              maxLength={60}
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
@@ -148,7 +128,15 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             correctChoice={answered && lastFeedback ? lastFeedback.correctText : null}
           />
         )}
-        <p className="hint center kb-hint q-flow">{flowHint}</p>
+        <p className="hint center kb-hint q-flow">
+          {mode === 'choice'
+            ? (includeType
+                ? 'Şıkkı seç (Q, W, E, R) → Türü seç → Enter'
+                : 'Şıkkı seç (Q, W, E, R) → Enter ile onayla')
+            : (includeType
+                ? 'Cevabı yaz → Türü seç → Enter'
+                : 'Cevabı yaz → Enter')}
+        </p>
       </div>
 
       {/* Tür Butonları (yalnızca includeType true ise) */}
@@ -159,7 +147,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           onSelectCategory={onSelectCategory}
           answered={answered}
           correctCategory={answered && lastFeedback ? lastFeedback.correctCat : null}
-          altBadges={isCompound && mode === 'type'}
+          altBadges={question.quiz === 'compound' && mode === 'type'}
         />
       )}
 

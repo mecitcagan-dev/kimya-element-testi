@@ -1,23 +1,21 @@
 import { useState, useCallback, useRef } from 'react';
 import { QuizConfig, QuestionItem, AnswerResult, MissedQuestion, SessionResult } from '../types/quiz';
+import { TOPIC_MAP } from '../data/topics';
 import {
   createQuestion,
   evaluateAnswer,
   generateChoices,
-  getPoolZs,
-  isFormulaAsk
+  getPoolIds
 } from '../engine/quizEngine';
 import {
-  recordElementResult,
-  recordCompoundResult,
-  getWeakElementZs,
-  getWeakCompoundZs
+  recordTopicResult,
+  getWeakTopicIds
 } from '../engine/statsEngine';
 import { randInt, shuffle } from '../utils/random';
 import { squeeze } from '../utils/text';
 
 interface RetryItem {
-  z: number;
+  id: number | string;
   due: number;
 }
 
@@ -61,17 +59,17 @@ export function useQuizSession() {
   const [sessionResult, setSessionResult] = useState<SessionResult | null>(null);
   const [showPeriodicTable, setShowPeriodicTable] = useState<boolean>(false);
 
-  // Oturum iç durum referansları (asenkron render gecikmelerini önlemek için)
-  const poolRef = useRef<number[]>([]);
-  const deckRef = useRef<number[]>([]);
+  // Oturum iç durum referansları
+  const poolRef = useRef<(number | string)[]>([]);
+  const deckRef = useRef<(number | string)[]>([]);
   const retryQueueRef = useRef<RetryItem[]>([]);
-  const missedMapRef = useRef<Map<number, MissedQuestion>>(new Map());
+  const missedMapRef = useRef<Map<number | string, MissedQuestion>>(new Map());
   const questionIndexRef = useRef<number>(0);
   const freshAskedRef = useRef<number>(0);
-  const lastDrawnRef = useRef<number>(-1);
+  const lastDrawnRef = useRef<number | string>(-1);
   const progressRef = useRef<QuizProgress>(progress);
 
-  const drawFresh = useCallback((): number => {
+  const drawFresh = useCallback((): number | string => {
     if (deckRef.current.length === 0) {
       deckRef.current = shuffle(poolRef.current.slice());
       const n = deckRef.current.length;
@@ -97,14 +95,14 @@ export function useQuizSession() {
 
     if (retryIdx >= 0) {
       const item = retryQueueRef.current.splice(retryIdx, 1)[0];
-      return createQuestion(item.z, cfg.quiz, true, cfg);
+      return createQuestion(item.id, cfg.quiz, true, cfg);
     }
 
-    // 2) Sıradaki taze soru
+    // 2) Sıradaki yeni soru
     if (poolRef.current.length > 0 && freshAskedRef.current < cfg.total) {
       freshAskedRef.current += 1;
-      const z = drawFresh();
-      return createQuestion(z, cfg.quiz, false, cfg);
+      const id = drawFresh();
+      return createQuestion(id, cfg.quiz, false, cfg);
     }
 
     // 3) Bekleyen tekrarlar varsa onları sor
@@ -116,7 +114,7 @@ export function useQuizSession() {
         }
       });
       const item = retryQueueRef.current.splice(retryIdx, 1)[0];
-      return createQuestion(item.z, cfg.quiz, true, cfg);
+      return createQuestion(item.id, cfg.quiz, true, cfg);
     }
 
     return null;
@@ -128,8 +126,10 @@ export function useQuizSession() {
       // Sorular tükendi, oturumu bitir
       const missed = Array.from(missedMapRef.current.values());
       const p = progressRef.current;
+      const topicInfo = TOPIC_MAP.get(cfg.quiz);
       const res: SessionResult = {
         quiz: cfg.quiz,
+        topicTitle: topicInfo?.title || cfg.quiz,
         answered: p.freshAnswered,
         full: p.fullCorrect,
         nameOk: p.nameCorrect,
@@ -163,8 +163,8 @@ export function useQuizSession() {
   }, [pickNextQuestion]);
 
   const startQuiz = useCallback((cfg: QuizConfig) => {
-    const weakList = cfg.quiz === 'compound' ? getWeakCompoundZs() : getWeakElementZs();
-    const pool = getPoolZs(cfg, weakList);
+    const weakList = getWeakTopicIds(cfg.quiz);
+    const pool = getPoolIds(cfg, weakList);
 
     setConfig(cfg);
     poolRef.current = pool;
@@ -209,11 +209,9 @@ export function useQuizSession() {
     }
 
     if (!hasText) {
-      const askForm = isFormulaAsk(currentQuestion);
-      const label = currentQuestion.quiz === 'compound'
-        ? (askForm ? 'bileşik formülünü' : 'bileşik adını')
-        : 'element adını';
-      setWarningMessage(`Lütfen ${label} ${isChoice ? 'seçin.' : 'yazın.'}`);
+      setWarningMessage(
+        isChoice ? 'Lütfen bir seçenek işaretleyin.' : 'Lütfen cevabı yazın.'
+      );
       return;
     }
 
@@ -246,24 +244,24 @@ export function useQuizSession() {
     progressRef.current = updated;
     setProgress(updated);
 
-    // Kalıcı istatistik kaydet
-    if (currentQuestion.quiz === 'compound') {
-      recordCompoundResult(
-        currentQuestion.data as any,
-        evalRes.nameOk,
-        evalRes.catOk,
-        currentQuestion.includeType
-      );
-    } else {
-      recordElementResult(currentQuestion.data as any, evalRes.nameOk, evalRes.catOk);
-    }
+    // Kalıcı konu istatistiğini kaydet
+    recordTopicResult(
+      currentQuestion.quiz,
+      currentQuestion.id,
+      evalRes.nameOk,
+      evalRes.catOk,
+      currentQuestion.includeType
+    );
 
     // Yanlışları kaydet & kuyruğa ekle
-    const z = currentQuestion.data.z;
+    const qId = currentQuestion.id;
     if (!evalRes.full) {
-      if (!missedMapRef.current.has(z)) {
-        missedMapRef.current.set(z, {
-          z,
+      if (!missedMapRef.current.has(qId)) {
+        missedMapRef.current.set(qId, {
+          z: qId,
+          title: currentQuestion.standard.prompt,
+          prompt: currentQuestion.standard.prompt,
+          correctText: currentQuestion.standard.answer,
           typed: squeeze(answerText),
           pickedCat: pickedCategory || '',
           resolved: false
@@ -271,13 +269,13 @@ export function useQuizSession() {
       }
       if (config.retry) {
         retryQueueRef.current.push({
-          z,
+          id: qId,
           due: questionIndexRef.current + randInt(3, 5)
         });
       }
     } else {
-      if (missedMapRef.current.has(z)) {
-        missedMapRef.current.get(z)!.resolved = true;
+      if (missedMapRef.current.has(qId)) {
+        missedMapRef.current.get(qId)!.resolved = true;
       }
     }
   }, [currentQuestion, config, questionState, pickedChoice, typedValue, pickedCategory]);
@@ -294,8 +292,10 @@ export function useQuizSession() {
     }
     const missed = Array.from(missedMapRef.current.values());
     const p = progressRef.current;
+    const topicInfo = TOPIC_MAP.get(config.quiz);
     const res: SessionResult = {
       quiz: config.quiz,
+      topicTitle: topicInfo?.title || config.quiz,
       answered: p.freshAnswered,
       full: p.fullCorrect,
       nameOk: p.nameCorrect,

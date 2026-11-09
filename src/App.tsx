@@ -4,14 +4,14 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { SetupScreen } from './components/Setup/SetupScreen';
 import { QuizScreen } from './components/Quiz/QuizScreen';
 import { ResultScreen } from './components/Result/ResultScreen';
-import { CompoundReferenceModal } from './components/Reference/CompoundReferenceModal';
+import { TopicReferenceModal } from './components/Reference/TopicReferenceModal';
 import { PeriodicTableView } from './components/PeriodicTable/PeriodicTableView';
-import { ELEMENT_CATEGORIES } from './data/elements';
-import { COMPOUND_CATEGORIES } from './data/compounds';
+import { TOPIC_MAP } from './data/topics';
+import { TopicId } from './types/topics';
 
 export const App: React.FC = () => {
   const session = useQuizSession();
-  const [isCompoundRefOpen, setIsCompoundRefOpen] = useState(false);
+  const [referenceTopicId, setReferenceTopicId] = useState<TopicId | null>(null);
   const [isSetupPeriodicOpen, setIsSetupPeriodicOpen] = useState(false);
 
   // Klavye olayları bağlama
@@ -20,7 +20,7 @@ export const App: React.FC = () => {
     topic: session.config?.quiz ?? 'element',
     question: session.currentQuestion,
     questionState: session.questionState,
-    mode: session.config?.mode ?? 'type',
+    mode: session.config?.mode ?? 'choice',
     choices: session.choices,
     onSubmit: session.submitAnswer,
     onNext: session.advanceToNext,
@@ -36,9 +36,8 @@ export const App: React.FC = () => {
       }
     },
     onSelectCategoryIndex: index => {
-      const cats = session.currentQuestion?.quiz === 'compound'
-        ? COMPOUND_CATEGORIES
-        : ELEMENT_CATEGORIES;
+      const topicInfo = TOPIC_MAP.get(session.currentQuestion?.quiz ?? 'element');
+      const cats = topicInfo?.categories || [];
       const cat = cats[index];
       if (cat) {
         session.setPickedCategory(prev => (prev === cat.key ? null : cat.key));
@@ -54,7 +53,7 @@ export const App: React.FC = () => {
           <SetupScreen
             onStartQuiz={session.startQuiz}
             onOpenPeriodicTable={() => setIsSetupPeriodicOpen(prev => !prev)}
-            onOpenCompoundReference={() => setIsCompoundRefOpen(true)}
+            onOpenTopicReference={topicId => setReferenceTopicId(topicId)}
           />
 
           {isSetupPeriodicOpen && (
@@ -79,7 +78,7 @@ export const App: React.FC = () => {
       {session.status === 'testing' && session.currentQuestion && (
         <QuizScreen
           question={session.currentQuestion}
-          mode={session.config?.mode ?? 'type'}
+          mode={session.config?.mode ?? 'choice'}
           questionState={session.questionState}
           typedValue={session.typedValue}
           pickedChoice={session.pickedChoice}
@@ -114,10 +113,11 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Bileşik Referans Modal */}
-      <CompoundReferenceModal
-        isOpen={isCompoundRefOpen}
-        onClose={() => setIsCompoundRefOpen(false)}
+      {/* Dinamik Konu Çalışma / Referans Modalı */}
+      <TopicReferenceModal
+        topicId={referenceTopicId}
+        isOpen={referenceTopicId !== null}
+        onClose={() => setReferenceTopicId(null)}
       />
     </main>
   );
