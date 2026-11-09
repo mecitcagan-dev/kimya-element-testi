@@ -2,149 +2,195 @@ export interface PeriodicTrendItem {
   id: string;
   question: string;
   answer: string;
-  category: 'İyonlaşma Enerjisi' | 'Elektron İlgisi & EN' | 'Atom Çapı' | 'Oksit & Asit Karakteri';
+  distractors: string[];
+  category: 'Soldan Sağa' | 'Yukarıdan Aşağıya' | 'Sağdan Sola' | 'Aşağıdan Yukarıya' | 'ÖSYM İstisnaları';
   examHighlight: string;
 }
 
 export const PERIODIC_TRENDS: PeriodicTrendItem[] = [
+  // 1. SOLDAN SAĞA (Aynı Periyotta)
   {
-    id: 'ei-istisnasi-cl-f',
-    question: 'Periyodik sistemde elektron ilgisi en yüksek olan element hangisidir?',
-    answer: 'Klor (Cl) — Flor değil!',
-    category: 'Elektron İlgisi & EN',
-    examHighlight: 'ÖSYM NİN EN SEVDİĞİ İSTİSNA: Genel kural sağa ve yukarı artsa da, Florun 2p orbitallerindeki yoğun itme nedeniyle Klorun elektron ilgisi Flordan daha büyüktür (Cl > F).'
+    id: 'ss-artan-en',
+    question: '➡️ Soldan sağa doğru (aynı periyotta) gidildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Elektronegatiflik',
+    distractors: ['Atom Yarıçapı', 'Metalik Karakter', 'Oksitlerin Bazlık Kuvveti'],
+    category: 'Soldan Sağa',
+    examHighlight: 'Proton sayısı ve çekirdek çekimi arttıkça bağ elektronlarını çekme gücü artar. 7A daki Flor (4.0) zirvedir (soy gazlar hariç).'
   },
   {
-    id: 'en-en-yuksek',
-    question: 'Periyodik sistemde elektronegatifliği en yüksek olan element hangisidir?',
-    answer: 'Flor (F) — Pauling ölçeğinde 4.0',
-    category: 'Elektron İlgisi & EN',
-    examHighlight: 'Elektronegatifliği en yüksek olan element Flordur (F). Bileşiklerinde SADECE -1 yükseltgenme basamağı alır.'
+    id: 'ss-artan-ie',
+    question: '➡️ Soldan sağa doğru (aynı periyotta) gidildikçe aşağıdakilerden hangisi GENELLİKLE ARTAR?',
+    answer: '1. İyonlaşma Enerjisi (3 aşağı 5 yukarı ile)',
+    distractors: ['Atom Yarıçapı', 'Metalik Aktiflik', 'Elektropozitiflik'],
+    category: 'Soldan Sağa',
+    examHighlight: 'Çap küçüldüğü için elektron koparmak zorlaşır. 2A ve 5A küresel simetri tepecikleri oluşturur (1A < 3A < 2A < 4A < 6A < 5A < 7A < 8A).'
   },
   {
-    id: 'soygaz-en',
-    question: 'Soy gazların elektronegatiflik değeri genel olarak nasıldır?',
-    answer: 'Tanımlanmaz / Yoktur (Bağ yapma eğilimleri yoktur)',
-    category: 'Elektron İlgisi & EN',
-    examHighlight: 'Elektronegatiflik kimyasal bağdaki elektronları çekme yeteneğidir. Standart koşullarda bağ yapmayan soy gazların elektronegatifliği yoktur.'
+    id: 'ss-artan-ametalik',
+    question: '➡️ Soldan sağa doğru (aynı periyotta) gidildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Ametalik Karakter & Ametal Oksit Asitliği',
+    distractors: ['Metalik Karakter', 'Atom Yarıçapı', 'Oksitlerin Bazlığı'],
+    category: 'Soldan Sağa',
+    examHighlight: 'Elektron alma isteği arttığı için ametallik güçlenir. CO2 ve SO3 gibi asit anhidriti oksitler oluşur.'
   },
   {
-    id: 'ie-3-asagi-5-yukari',
-    question: 'Aynı periyotta 1. İyonlaşma Enerjisi sıralaması nasıldır?',
-    answer: '1A < 3A < 2A < 4A < 6A < 5A < 7A < 8A ("3 aşağı 5 yukarı")',
-    category: 'İyonlaşma Enerjisi',
-    examHighlight: '2A (ns2 tam dolu) ve 5A (ns2 np3 yarı dolu) grupları küresel simetri kararlılığına sahip olduğundan kendilerinden sonra gelen 3A ve 6A dan daha yüksek iyonlaşma enerjisine sahiptir.'
+    id: 'ss-azalan-cap',
+    question: '➡️ Soldan sağa doğru (aynı periyotta) gidildikçe aşağıdakilerden hangisi AZALIR?',
+    answer: 'Atom ve İyon Yarıçapı (Çap büzülür)',
+    distractors: ['Elektronegatiflik', 'İyonlaşma Enerjisi', 'Proton Sayısı'],
+    category: 'Soldan Sağa',
+    examHighlight: 'Kardan Adam Kuralı: Katman sayısı aynı kalırken çekirdeğin proton çekimi (Zeff) arttığından atom büzülür ve çap küçülür.'
   },
   {
-    id: 'cam-asindiran-asit',
-    question: 'Zayıf asit olmasına rağmen cam ve porseleni (SiO2) aşındıran tek asit hangisidir?',
+    id: 'ss-azalan-metalik',
+    question: '➡️ Soldan sağa doğru (aynı periyotta) gidildikçe aşağıdakilerden hangisi AZALIR?',
+    answer: 'Metalik Karakter & Elektropozitiflik',
+    distractors: ['Elektronegatiflik', 'Ametalik Karakter', 'Değerlik Elektron Sayısı'],
+    category: 'Soldan Sağa',
+    examHighlight: 'Elektron vermek zorlaştığı için metalik aktiflik zayıflar; 1A metallerinden 7A ametallerine geçilir.'
+  },
+  {
+    id: 'ss-degismez-katman',
+    question: '➡️ Soldan sağa doğru (aynı periyotta) gidildikçe aşağıdakilerden hangisi DEĞİŞMEZ?',
+    answer: 'Katman (Periyot) Sayısı',
+    distractors: ['Atom Yarıçapı', 'Değerlik Elektron Sayısı', 'Elektronegatiflik'],
+    category: 'Soldan Sağa',
+    examHighlight: 'Aynı periyotta bulunulduğu için temel enerji düzeyi (baş kuantum sayısı) sabittir.'
+  },
+
+  // 2. SAĞDAN SOLA (Geriye Doğru)
+  {
+    id: 'sl-artan-cap',
+    question: '⬅️ Sağdan sola doğru gidildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Atom ve İyon Yarıçapı',
+    distractors: ['Elektronegatiflik', '1. İyonlaşma Enerjisi', 'Ametalik Karakter'],
+    category: 'Sağdan Sola',
+    examHighlight: 'Proton çekim kuvveti zayıfladığı için elektron bulutu gevşer ve çap büyür. 1A periyodun en geniş çaplı atomlarıdır.'
+  },
+  {
+    id: 'sl-artan-metalik',
+    question: '⬅️ Sağdan sola doğru gidildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Metalik Karakter & Oksitlerin Bazlığı',
+    distractors: ['Elektronegatiflik', 'Ametalik Karakter', 'Asitlik Kuvveti'],
+    category: 'Sağdan Sola',
+    examHighlight: 'İyonlaşma enerjisi düştüğü için elektron verme isteği artar; Na2O ve K2O gibi kuvvetli bazik oksitler oluşur.'
+  },
+  {
+    id: 'sl-azalan-en',
+    question: '⬅️ Sağdan sola doğru gidildikçe aşağıdakilerden hangisi AZALIR?',
+    answer: 'Elektronegatiflik & Elektron İlgisi',
+    distractors: ['Atom Yarıçapı', 'Metalik Karakter', 'Oksitlerin Bazlığı'],
+    category: 'Sağdan Sola',
+    examHighlight: 'Ametallik zayıfladığı için elektron çekme gücü düşer; metaller elektron çekmek değil vermek ister.'
+  },
+
+  // 3. YUKARIDAN AŞAĞIYA (Aynı Grupta)
+  {
+    id: 'ya-artan-cap',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Atom ve İyon Yarıçapı (Yeni katman eklenir)',
+    distractors: ['1. İyonlaşma Enerjisi', 'Elektronegatiflik', 'Ametalik Karakter'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: 'Her satırda yeni bir enerji katmanı açıldığı için kardan adamın alt gövdesi gibi çap devasa büyür.'
+  },
+  {
+    id: 'ya-artan-metalik',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Metalik Karakter & Aktiflik (Fr en aktiftir)',
+    distractors: ['1. İyonlaşma Enerjisi', 'Elektronegatiflik', 'Ametalik Karakter'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: 'Çap büyüyüp dış elektronlar çekirdekten uzaklaştığı için elektron vermek çok kolaylaşır. 1A daki Fransiyum ve Sezyum en aktif metallerdir.'
+  },
+  {
+    id: 'ya-artan-asit-hx',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi ARTAR?',
+    answer: 'Halojen Asitlerinin Kuvveti (HI > HBr > HCl > HF)',
+    distractors: ['Elektronegatiflik', '1. İyonlaşma Enerjisi', 'Ametalik Aktiflik'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: 'Çap büyüdükçe H-X bağı uzayıp zayıflar; H+ iyonu sulu çözeltiye daha kolay salınır. HF zayıf asit iken HI en kuvvetlidir.'
+  },
+  {
+    id: 'ya-azalan-ie',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi AZALIR?',
+    answer: '1. İyonlaşma Enerjisi',
+    distractors: ['Atom Yarıçapı', 'Katman Sayısı', 'Metalik Karakter'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: 'Değerlik elektronları çekirdekten çok uzaklaştığı ve iç katmanlarca perdelendiği için koparmak çok kolaylaşır.'
+  },
+  {
+    id: 'ya-azalan-en',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi AZALIR?',
+    answer: 'Elektronegatiflik (Flor en yüksektir)',
+    distractors: ['Atom Yarıçapı', 'Katman Sayısı', 'Metalik Karakter'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: '7A da Flor (4.0) en yüksek iken Klor (3.0), Brom (2.8) ve İyot (2.5) şeklinde aşağı doğru düzenli düşer.'
+  },
+  {
+    id: 'ya-azalan-ametalik',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi AZALIR?',
+    answer: 'Ametalik Karakter & Aktiflik',
+    distractors: ['Atom Yarıçapı', 'Metalik Aktiflik', 'Proton Sayısı'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: 'Elektron alma isteği zayıflar. 7A nın tepesindeki Flor gaz ve aşırı aktif iken en alttaki İyot katıdır.'
+  },
+  {
+    id: 'ya-degismez-des',
+    question: '⬇️ Yukarıdan aşağıya doğru (aynı grupta) inildikçe aşağıdakilerden hangisi DEĞİŞMEZ?',
+    answer: 'Değerlik Elektron Sayısı (He hariç)',
+    distractors: ['Katman Sayısı', 'Atom Yarıçapı', 'İyonlaşma Enerjisi'],
+    category: 'Yukarıdan Aşağıya',
+    examHighlight: 'Aynı gruptaki elementlerin dış orbital dizilimi benzerdir. İstisna: 8A da Helyum 2, altındakiler 8 değerlik elektronuna sahiptir.'
+  },
+
+  // 4. AŞAĞIDAN YUKARIYA (Yukarı Doğru)
+  {
+    id: 'ay-artan-ie',
+    question: '⬆️ Aşağıdan yukarıya doğru çıkıldıkça aşağıdakilerden hangisi ARTAR?',
+    answer: '1. İyonlaşma Enerjisi (He tablonun zirvesidir)',
+    distractors: ['Atom Yarıçapı', 'Katman Sayısı', 'Metalik Aktiflik'],
+    category: 'Aşağıdan Yukarıya',
+    examHighlight: 'Katman azaldığı için elektron çekirdeğe çok yakındır. Helyum (2372 kJ/mol) periyodik tablonun iyonlaşma enerjisi en yüksek elementidir.'
+  },
+  {
+    id: 'ay-artan-en',
+    question: '⬆️ Aşağıdan yukarıya doğru çıkıldıkça aşağıdakilerden hangisi ARTAR?',
+    answer: 'Elektronegatiflik (F 4.0 zirvedir)',
+    distractors: ['Atom Yarıçapı', 'Metalik Karakter', 'Oksitlerin Bazlığı'],
+    category: 'Aşağıdan Yukarıya',
+    examHighlight: 'Küçük atom çapı bağ elektronlarını daha kuvvetle çeker. Flor (F) 4.0 değeriyle periyodik sistemin en elektronegatif atomudur.'
+  },
+  {
+    id: 'ay-azalan-cap',
+    question: '⬆️ Aşağıdan yukarıya doğru çıkıldıkça aşağıdakilerden hangisi AZALIR?',
+    answer: 'Atom Yarıçapı & Katman Sayısı',
+    distractors: ['İyonlaşma Enerjisi', 'Elektronegatiflik', 'Ametalik Karakter'],
+    category: 'Aşağıdan Yukarıya',
+    examHighlight: 'Her satırda bir katman eksilir (7. periyottan 1. periyota doğru). Çap küçülür.'
+  },
+
+  // 5. ÖSYM ÖZEL İSTİSNA VE KURALLARI
+  {
+    id: 'istisna-cl-f',
+    question: '🔍 7A grubunda yukarıdan aşağı inildikçe elektron ilgisi Flor\'dan Klor\'a nasıl değişir?',
+    answer: 'İstisnai olarak Artar (Cl > F dir!)',
+    distractors: ['Düzenli Azalır', 'Değişmez', 'Sıfıra İner'],
+    category: 'ÖSYM İstisnaları',
+    examHighlight: 'ÖSYM NİN EN SEVDİĞİ İSTİSNA: Florun 2p orbitallerindeki yüksek itme nedeniyle elektron ilgisi en yüksek element Klor (Cl) dur.'
+  },
+  {
+    id: 'istisna-kuresel-simetri',
+    question: '🔍 Aynı periyotta 1. İyonlaşma Enerjisinde 2A ve 5A gruplarının 3A ve 6A dan yüksek olmasının nedeni nedir?',
+    answer: 'Küresel Simetri Kararlılığı (3 aşağı 5 yukarı)',
+    distractors: ['Atom çapının küçük olması', 'Elektron ilgisinin sıfır olması', 'Değerlik elektron sayısının az olması'],
+    category: 'ÖSYM İstisnaları',
+    examHighlight: '2A (ns² tam dolu) ve 5A (ns² np³ yarı dolu) küresel simetriye sahiptir ve elektron koparmak komşularından daha zordur.'
+  },
+  {
+    id: 'istisna-hf-cam',
+    question: '🔍 Zayıf asit olmasına rağmen camı ve porseleni (SiO2) aşındıran tek asit hangisidir?',
     answer: 'Hidroflorik Asit (HF)',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'HF zayıf bir asittir fakat SiO2 ile tepkimeye girip SiF4 gazı oluşturarak camı aşındırır. Bu yüzden plastik/teflon kaplarda saklanır.'
-  },
-  {
-    id: 'hx-asitlik-kuvveti',
-    question: 'Halojen asitlerinin (HF, HCl, HBr, HI) asitlik kuvveti sıralaması nasıldır?',
-    answer: 'HF < HCl < HBr < HI (Aşağı doğru asitlik artar)',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'Grupta aşağı doğru yarıçap büyür, H-X bağı uzayıp zayıflar, H+ iyonu çözeltiye daha kolay verilir. Dolayısıyla HI en kuvvetli, HF zayıf asittir.'
-  },
-  {
-    id: 'notr-oksitler',
-    question: 'CO, NO ve N2O gazları ne tür oksitlerdir ve suyla tepkime verirler mi?',
-    answer: 'Nötr Oksitlerdir — Su, asit ve bazla tepkime vermezler',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'Ametallerin oksijence fakir veya eşit olduğu oksitler (O sayısı <= Ametal) nötrdür. Asit yağmuru oluşturmazlar!'
-  },
-  {
-    id: 'asidik-oksitler',
-    question: 'CO2, SO2, SO3 ve N2O5 gazları suyla tepkimeye girdiğinde ne oluşturur?',
-    answer: 'Asit Çözeltisi Oluştururlar (Asit Yağmuru)',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'Oksijence zengin ametal oksitleri asit anhidritleridir. Suyla tepkimeye girerek H2CO3, H2SO4 ve HNO3 oluştururlar.'
-  },
-  {
-    id: 'amfoter-oksitler',
-    question: 'Al2O3 ve ZnO gibi amfoter oksitler zayıf baz olan NH3 ile tepkime verir mi?',
-    answer: 'Tepkime Vermezler! (Yalnızca kuvvetli bazlarla verirler)',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'Amfoter metaller ve oksitleri hem asitlerle hem de KUVVETLİ bazlarla tepkime verir; amonyak (NH3) gibi zayıf bazlarla tepkime vermezler.'
-  },
-  {
-    id: 'izoelektronik-cap',
-    question: 'İzoelektronik taneciklerde (7N3-, 8O2-, 9F-, 11Na+, 12Mg2+, 13Al3+) atom yarıçapı sıralaması nasıldır?',
-    answer: 'N3- > O2- > F- > Na+ > Mg2+ > Al3+ (Proton sayısı arttıkça çap küçülür)',
-    category: 'Atom Çapı',
-    examHighlight: 'Elektron sayıları eşitken çekirdekteki proton sayısı ne kadar fazlaysa elektron başına düşen çekim kuvveti o kadar artar ve çap o kadar büzülür.'
-  },
-  {
-    id: 'anyon-katyon-cap',
-    question: 'Bir atom elektron verdiğinde (katyon) ve elektron aldığında (anyon) yarıçapı nasıl değişir?',
-    answer: 'Elektron verince küçülür (Katyon < Nötr), elektron alınca büyür (Anyon > Nötr)',
-    category: 'Atom Çapı',
-    examHighlight: 'Örn: Fe3+ < Fe2+ < Fe ve Cl < Cl-. Elektron verilince birim elektron başına düşen çekim artar, katman büzülür.'
-  },
-  {
-    id: 'ie-sicrama-kurali',
-    question: 'İyonlaşma enerjisi tablosunda ardışık iki değer arasında en az kaç kat artış varsa grup numarası belirlenir?',
-    answer: 'En az 3.5 — 4 Kat Sıçrama (Soy gaz kararlılığına ulaşıldığında)',
-    category: 'İyonlaşma Enerjisi',
-    examHighlight: 'Örneğin İE1=496, İE2=4562 (yaklaşık 9 kat sıçrama) olan bir element 1A grubundadır (valans elektron sayısı 1 dir).'
-  },
-  {
-    id: 'yon-cap-soldan-saga',
-    question: 'Aynı periyotta SOLDAN SAĞA doğru gidildikçe atom yarıçapı nasıl değişir?',
-    answer: 'Azalır (Katman aynıyken proton çekimi arttığı için büzülür)',
-    category: 'Atom Çapı',
-    examHighlight: 'Kardan Adam Kuralı: Sağa doğru erir ve incelir. 1A periyodun en büyük, 7A/8A en küçük çaplısıdır.'
-  },
-  {
-    id: 'yon-cap-yukaridan-asagiya',
-    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru inildikçe atom yarıçapı nasıl değişir?',
-    answer: 'Artar (Her periyotta yeni bir elektron katmanı eklenir)',
-    category: 'Atom Çapı',
-    examHighlight: 'Kardan Adam Kuralı: Kardan adamın alt gövdesi en büyüktür. Katman artışı çekirdek çekiminden çok daha baskındır.'
-  },
-  {
-    id: 'yon-en-soldan-saga',
-    question: 'Aynı periyotta SOLDAN SAĞA doğru elektronegatiflik nasıl değişir?',
-    answer: 'Artar (Flor 4.0 zirvedir, soy gazlar hariç)',
-    category: 'Elektron İlgisi & EN',
-    examHighlight: 'Çekirdek çekim gücü arttıkça bağ elektronlarını çekme gücü artar. 8A soy gazlarında elektronegatiflik tanımlanmaz.'
-  },
-  {
-    id: 'yon-ie-yukaridan-asagiya',
-    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru 1. İyonlaşma Enerjisi nasıl değişir?',
-    answer: 'Azalır (Çap büyüdüğü için dış elektronlar çok kolay kopar)',
-    category: 'İyonlaşma Enerjisi',
-    examHighlight: 'Çekirdekten uzaklaşan ve iç katmanlarca perdelenen değerlik elektronunu koparmak için daha az enerji gerekir.'
-  },
-  {
-    id: 'yon-metalik-yukaridan-asagiya',
-    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru metalik aktiflik (elektron verme kolaylığı) nasıl değişir?',
-    answer: 'Artar (Fransiyum ve Sezyum en aktif metallerdir)',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'Metaller elektron vererek reaksiyona girer. Çap büyüdükçe elektron vermek kolaylaşır, metalik reaktivite tavan yapar.'
-  },
-  {
-    id: 'yon-ametalik-soldan-saga',
-    question: 'Aynı periyotta SOLDAN SAĞA doğru ametalik aktiflik (elektron alma isteği) nasıl değişir?',
-    answer: 'Artar (Flor periyodun ve tablonun en aktif ametalidir)',
-    category: 'Oksit & Asit Karakteri',
-    examHighlight: 'Çap küçüldükçe dışarıdan elektron yakalama isteği artar. 7A halojenleri periyotlarının en aktif ametalleridir.'
-  },
-  {
-    id: 'yon-katman-des-periyot',
-    question: 'Aynı periyotta SOLDAN SAĞA doğru değerlik elektron sayısı ve katman sayısı nasıl değişir?',
-    answer: 'Değerlik elektron sayısı artar (1 den 8 e), Katman sayısı DEĞİŞMEZ',
-    category: 'Atom Çapı',
-    examHighlight: 'Aynı periyottaki tüm elementlerin baş kuantum (katman) sayısı eşittir; periyot numarası katman sayısını verir.'
-  },
-  {
-    id: 'yon-des-grup',
-    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru değerlik elektron sayısı nasıl değişir?',
-    answer: 'Değişmez (İstisna: He 2, gruptaki diğerleri 8 dir)',
-    category: 'Atom Çapı',
-    examHighlight: 'HELYUM TUZAĞI: 8A daki Helyum 2 değerlik elektronuna sahiptir; altındaki Ne, Ar, Kr ise 8 elektrona sahiptir.'
+    distractors: ['Tuz Ruhu (HCl)', 'Kezzap (HNO3)', 'Zaç Yağı (H2SO4)'],
+    category: 'ÖSYM İstisnaları',
+    examHighlight: 'HF zayıf asittir ancak SiO2 ile SiF4 gazı oluşturarak camı aşındırır; bu yüzden teflon ve plastik kaplarda saklanır.'
   }
 ];

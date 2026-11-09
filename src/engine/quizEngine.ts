@@ -179,10 +179,11 @@ export function getTopicStandardItems(topicId: TopicId, dir = 'ad-formul'): Stan
         prompt: p.question,
         promptSub: `Konu: ${p.category}`,
         answer: p.answer,
+        distractors: p.distractors,
         category: p.category,
         infoChips: [
           { label: 'Kategori', value: p.category },
-          { label: 'Kural / Cevap', value: p.answer },
+          { label: 'Doğru Özellik', value: p.answer },
           { label: 'ÖSYM Notu', value: p.examHighlight }
         ],
         hint: p.examHighlight
@@ -270,15 +271,25 @@ export const evaluateAnswer = (
 };
 
 export const generateChoices = (q: QuestionItem): string[] => {
-  const items = getTopicStandardItems(q.quiz, q.dir);
   const currentAnswer = q.standard.answer;
-  const others = shuffle(items.filter(x => x.answer !== currentAnswer));
-
   const used = new Set<string>([currentAnswer]);
   const extra: string[] = [];
 
-  // Aynı kategoriden olanlara öncelik vererek çeldirici zorluğunu artır
-  if (q.standard.category) {
+  // 1. Eğer soruya özel tanımlı çeldiriciler varsa önce onları kullan
+  if (q.standard.distractors && q.standard.distractors.length > 0) {
+    shuffle(q.standard.distractors).forEach(d => {
+      if (!used.has(d) && extra.length < 3) {
+        used.add(d);
+        extra.push(d);
+      }
+    });
+  }
+
+  const items = getTopicStandardItems(q.quiz, q.dir);
+  const others = shuffle(items.filter(x => x.answer !== currentAnswer));
+
+  // 2. Aynı kategoriden olanlara öncelik vererek çeldirici zorluğunu artır
+  if (extra.length < 3 && q.standard.category) {
     const sameCat = others.filter(x => x.category === q.standard.category);
     sameCat.slice(0, 2).forEach(x => {
       if (!used.has(x.answer) && extra.length < 3) {
@@ -288,7 +299,7 @@ export const generateChoices = (q: QuestionItem): string[] => {
     });
   }
 
-  // Geriye kalan çeldiricileri ekle
+  // 3. Geriye kalan çeldiricileri ekle
   others.forEach(x => {
     if (!used.has(x.answer) && extra.length < 3) {
       used.add(x.answer);

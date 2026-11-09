@@ -51,9 +51,9 @@ export interface StandardQuizItem {
   prompt: string;
   promptSub?: string;
   answer: string;
+  distractors?: string[];
   synonyms?: string[];
   category?: string;
   infoChips: { label: string; value: string }[];
-  distractors?: string[];
   hint?: string;
 }
