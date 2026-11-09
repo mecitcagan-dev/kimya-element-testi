@@ -10,6 +10,12 @@ import { ALCHEMISTS, alchemistToQuizItem } from '../data/alchemists';
 import { VALENCE_METALS, valenceToQuizItem } from '../data/variableValence';
 import { FUNCTIONAL_GROUPS, functionalGroupToQuizItem } from '../data/functionalGroups';
 import { ORGANIC_COMMON, organicCommonToQuizItem } from '../data/organicCommon';
+import { SOLIDS } from '../data/solids';
+import { INTERACTIONS } from '../data/interactions';
+import { VSEPR_MOLECULES } from '../data/vsepr';
+import { METAL_REACTIONS } from '../data/metalReactions';
+import { ORGANIC_TESTS } from '../data/organicTests';
+import { PERIODIC_TRENDS } from '../data/periodicTrends';
 import { foldKey, nameMatches, formulaMatches, squeeze } from '../utils/text';
 import { shuffle } from '../utils/random';
 
@@ -80,6 +86,107 @@ export function getTopicStandardItems(topicId: TopicId, dir = 'ad-formul'): Stan
       const orgDir = dir === 'form-spec' ? 'form-spec' : 'spec-form';
       return ORGANIC_COMMON.map(c => organicCommonToQuizItem(c, orgDir));
     }
+
+    case 'solids':
+      return SOLIDS.map(s => ({
+        id: s.id,
+        prompt: `${s.name} (${s.formula})`,
+        promptSub: 'Katı sınıfı nedir?',
+        answer: s.solidType,
+        category: s.solidType,
+        infoChips: [
+          { label: 'Madde', value: `${s.name} [${s.formula}]` },
+          { label: 'Katı Türü', value: s.solidType },
+          { label: 'Bağ / Etkileşim', value: s.bonding },
+          { label: 'İletkenlik', value: s.conductivity },
+          { label: 'Erime Noktası', value: s.meltingPoint },
+          { label: 'ÖSYM Notu', value: s.examHighlight }
+        ],
+        hint: `Bağ Türü: ${s.bonding}. ${s.examHighlight}`
+      }));
+
+    case 'interactions':
+      return INTERACTIONS.map(item => ({
+        id: item.id,
+        prompt: item.pair,
+        promptSub: 'Tanecikler arası baskın etkileşim türü nedir?',
+        answer: item.dominantInteraction,
+        category: item.dominantInteraction,
+        infoChips: [
+          { label: 'Çift', value: item.pair },
+          { label: 'Baskın Etkileşim', value: item.dominantInteraction },
+          { label: 'Çözünürlük', value: item.dissolution },
+          { label: 'ÖSYM Notu', value: item.examHighlight }
+        ],
+        hint: `${item.dissolution}. ${item.examHighlight}`
+      }));
+
+    case 'vsepr':
+      return VSEPR_MOLECULES.map(mol => ({
+        id: mol.id,
+        prompt: `${mol.name} (${mol.formula})`,
+        promptSub: 'VSEPR formülü ve molekül geometrisi nedir?',
+        answer: `${mol.vsepr} — ${mol.geometry}`,
+        category: mol.geometry,
+        infoChips: [
+          { label: 'Molekül', value: `${mol.formula} (${mol.name})` },
+          { label: 'VSEPR Kodu', value: mol.vsepr },
+          { label: 'Geometri', value: mol.geometry },
+          { label: 'Hibritleşme', value: mol.hybridization },
+          { label: 'Bağ Açısı', value: mol.bondAngle },
+          { label: 'Polarite', value: mol.polarity },
+          { label: 'ÖSYM Notu', value: mol.examHighlight }
+        ],
+        hint: `Merkez atom ${mol.hybridization} hibriti yapar, bağ açısı ${mol.bondAngle}. ${mol.polarity}.`
+      }));
+
+    case 'metal_reactions':
+      return METAL_REACTIONS.map(rx => ({
+        id: rx.id,
+        prompt: rx.reactants,
+        promptSub: 'Tepkime sonucu hangi gaz açığa çıkar?',
+        answer: rx.gasProduced,
+        category: rx.metalClass,
+        infoChips: [
+          { label: 'Tepkime', value: rx.reactants },
+          { label: 'Açığa Çıkan Gaz', value: rx.gasProduced },
+          { label: 'Metal Sınıfı', value: rx.metalClass },
+          { label: 'Denklem', value: rx.equation },
+          { label: 'ÖSYM Notu', value: rx.examHighlight }
+        ],
+        hint: `Metal Sınıfı: ${rx.metalClass}. Denklem: ${rx.equation}`
+      }));
+
+    case 'organic_tests':
+      return ORGANIC_TESTS.map(t => ({
+        id: t.id,
+        prompt: t.reactants,
+        promptSub: 'Ayıraç veya reaksiyon sonucu ne gözlenir?',
+        answer: t.result,
+        category: t.reactionType,
+        infoChips: [
+          { label: 'Reaktifler', value: t.reactants },
+          { label: 'Gözlem / Sonuç', value: t.result },
+          { label: 'Tepkime Türü', value: t.reactionType },
+          { label: 'ÖSYM Notu', value: t.examHighlight }
+        ],
+        hint: `${t.reactionType}. ${t.examHighlight}`
+      }));
+
+    case 'periodic_trends':
+      return PERIODIC_TRENDS.map(p => ({
+        id: p.id,
+        prompt: p.question,
+        promptSub: `Konu: ${p.category}`,
+        answer: p.answer,
+        category: p.category,
+        infoChips: [
+          { label: 'Kategori', value: p.category },
+          { label: 'Kural / Cevap', value: p.answer },
+          { label: 'ÖSYM Notu', value: p.examHighlight }
+        ],
+        hint: p.examHighlight
+      }));
 
     default:
       return [];

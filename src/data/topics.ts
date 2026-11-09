@@ -62,6 +62,26 @@ export const ALL_TOPICS: TopicDefinition[] = [
     description: 'Yanıcı, yakıcı, korozif, toksik ve radyoaktif gibi 9 resmi GHS kimya tehlike piktogramını ve anlamlarını test et.',
     defaultCount: 9
   },
+  {
+    id: 'periodic_trends',
+    title: 'Periyodik Özellikler & İstisnalar',
+    examCategory: 'tyt_ayt',
+    icon: '📈',
+    tag: 'TYT + AYT',
+    badgeColor: '#e5484d',
+    description: 'Cl > F elektron ilgisi istisnası, 3 aşağı 5 yukarı kuralı, F in elektronegatifliği, HF cam aşındırması ve oksit türlerini test et.',
+    defaultCount: 12
+  },
+  {
+    id: 'metal_reactions',
+    title: 'Metaller & Gaz Çıkışları',
+    examCategory: 'tyt_ayt',
+    icon: '🔥',
+    tag: 'TYT + AYT',
+    badgeColor: '#e5484d',
+    description: 'Cu, Ag, Zn, Fe metallerinin asit ve bazlarla tepkimelerini; NO2, NO, SO2, H2 veya CO2 gazı çıkış kurallarını test et.',
+    defaultCount: 16
+  },
 
   // ========== 2. TYT (Temel Yeterlilik Konuları) ==========
   {
@@ -93,6 +113,26 @@ export const ALL_TOPICS: TopicDefinition[] = [
     badgeColor: '#30a46c',
     description: 'Democritus, Aristo, Cabir bin Hayyan, Ebubekir er-Razi, Robert Boyle ve Lavoisier’in kimya bilimine katkılarını test et.',
     defaultCount: 7
+  },
+  {
+    id: 'solids',
+    title: 'Katı Türleri & Kristal Yapılar',
+    examCategory: 'tyt',
+    icon: '💎',
+    tag: 'TYT',
+    badgeColor: '#30a46c',
+    description: 'Kuru buz (moleküler), elmas/grafit (kovalent), NaCl (iyonik), demir (metalik) ve cam (amorf) katı sınıflandırmalarını test et.',
+    defaultCount: 18
+  },
+  {
+    id: 'interactions',
+    title: 'Kimyasal Türler Arası Etkileşimler',
+    examCategory: 'tyt',
+    icon: '🔗',
+    tag: 'TYT',
+    badgeColor: '#30a46c',
+    description: 'Hidrojen bağı, dipol-dipol, iyon-dipol ve London kuvvetleri eşleştirmelerini, çözünme ve kaynama noktası mantığını test et.',
+    defaultCount: 16
   },
 
   // ========== 3. AYT (Alan Yeterlilik Konuları) ==========
@@ -130,6 +170,26 @@ export const ALL_TOPICS: TopicDefinition[] = [
       { id: 'form-spec', label: 'Formül → Özel Ad', keyBadge: 'J' },
       { id: 'karisik', label: 'Karışık', keyBadge: 'K' }
     ]
+  },
+  {
+    id: 'vsepr',
+    title: 'VSEPR & Molekül Geometrisi',
+    examCategory: 'ayt',
+    icon: '📐',
+    tag: 'AYT',
+    badgeColor: '#7950f2',
+    description: 'AX2, AX3, AX2E, AX4, AX3E, AX2E2 formüllerini; doğrusal, düzlem üçgen, kırık doğru, sp-sp2-sp3 ve bağ açılarını test et.',
+    defaultCount: 16
+  },
+  {
+    id: 'organic_tests',
+    title: 'Organik Reaksiyonlar & Ayıraçlar',
+    examCategory: 'ayt',
+    icon: '🧪',
+    tag: 'AYT',
+    badgeColor: '#7950f2',
+    description: 'Tollens (gümüş aynası), Fehling (Cu2O çökeleği), Bromlu su rengi giderme, 1°/2°/3° alkol yükseltgenmesi ve tautomeriyi test et.',
+    defaultCount: 14
   }
 ];
 

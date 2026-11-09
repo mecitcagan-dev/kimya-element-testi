@@ -124,7 +124,7 @@ describe('quizEngine', () => {
       expect(choices).toContain('Amonyum');
     });
 
-    it('generates choices for all 10 topics without errors', () => {
+    it('generates choices for all 16 topics without errors', () => {
       const topics = [
         'element',
         'compound',
@@ -135,7 +135,13 @@ describe('quizEngine', () => {
         'alchemists',
         'valence',
         'functional_groups',
-        'organic_common'
+        'organic_common',
+        'solids',
+        'interactions',
+        'vsepr',
+        'metal_reactions',
+        'organic_tests',
+        'periodic_trends'
       ] as const;
 
       topics.forEach(t => {

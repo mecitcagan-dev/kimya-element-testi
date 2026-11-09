@@ -10,7 +10,13 @@ export type TopicId =
   | 'alchemists'
   | 'valence'
   | 'functional_groups'
-  | 'organic_common';
+  | 'organic_common'
+  | 'solids'
+  | 'interactions'
+  | 'vsepr'
+  | 'metal_reactions'
+  | 'organic_tests'
+  | 'periodic_trends';
 
 export interface TopicDirection {
   id: string;

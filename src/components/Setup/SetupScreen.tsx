@@ -156,7 +156,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           style={examCat === 'tyt_ayt' ? { borderColor: '#e5484d', color: '#ff8787' } : {}}
           onClick={() => setExamCat('tyt_ayt')}
         >
-          🔥 TYT + AYT Ortak (4)
+          🔥 TYT + AYT Ortak ({ALL_TOPICS.filter(t => t.examCategory === 'tyt_ayt').length})
         </button>
         <button
           type="button"
@@ -164,7 +164,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           style={examCat === 'tyt' ? { borderColor: '#30a46c', color: '#69db7c' } : {}}
           onClick={() => setExamCat('tyt')}
         >
-          🧪 TYT Kimya (3)
+          🧪 TYT Kimya ({ALL_TOPICS.filter(t => t.examCategory === 'tyt').length})
         </button>
         <button
           type="button"
@@ -172,7 +172,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           style={examCat === 'ayt' ? { borderColor: '#7950f2', color: '#b197fc' } : {}}
           onClick={() => setExamCat('ayt')}
         >
-          🧬 AYT Kimya (3)
+          🧬 AYT Kimya ({ALL_TOPICS.filter(t => t.examCategory === 'ayt').length})
         </button>
       </div>
 
