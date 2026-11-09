@@ -90,5 +90,61 @@ export const PERIODIC_TRENDS: PeriodicTrendItem[] = [
     answer: 'En az 3.5 — 4 Kat Sıçrama (Soy gaz kararlılığına ulaşıldığında)',
     category: 'İyonlaşma Enerjisi',
     examHighlight: 'Örneğin İE1=496, İE2=4562 (yaklaşık 9 kat sıçrama) olan bir element 1A grubundadır (valans elektron sayısı 1 dir).'
+  },
+  {
+    id: 'yon-cap-soldan-saga',
+    question: 'Aynı periyotta SOLDAN SAĞA doğru gidildikçe atom yarıçapı nasıl değişir?',
+    answer: 'Azalır (Katman aynıyken proton çekimi arttığı için büzülür)',
+    category: 'Atom Çapı',
+    examHighlight: 'Kardan Adam Kuralı: Sağa doğru erir ve incelir. 1A periyodun en büyük, 7A/8A en küçük çaplısıdır.'
+  },
+  {
+    id: 'yon-cap-yukaridan-asagiya',
+    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru inildikçe atom yarıçapı nasıl değişir?',
+    answer: 'Artar (Her periyotta yeni bir elektron katmanı eklenir)',
+    category: 'Atom Çapı',
+    examHighlight: 'Kardan Adam Kuralı: Kardan adamın alt gövdesi en büyüktür. Katman artışı çekirdek çekiminden çok daha baskındır.'
+  },
+  {
+    id: 'yon-en-soldan-saga',
+    question: 'Aynı periyotta SOLDAN SAĞA doğru elektronegatiflik nasıl değişir?',
+    answer: 'Artar (Flor 4.0 zirvedir, soy gazlar hariç)',
+    category: 'Elektron İlgisi & EN',
+    examHighlight: 'Çekirdek çekim gücü arttıkça bağ elektronlarını çekme gücü artar. 8A soy gazlarında elektronegatiflik tanımlanmaz.'
+  },
+  {
+    id: 'yon-ie-yukaridan-asagiya',
+    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru 1. İyonlaşma Enerjisi nasıl değişir?',
+    answer: 'Azalır (Çap büyüdüğü için dış elektronlar çok kolay kopar)',
+    category: 'İyonlaşma Enerjisi',
+    examHighlight: 'Çekirdekten uzaklaşan ve iç katmanlarca perdelenen değerlik elektronunu koparmak için daha az enerji gerekir.'
+  },
+  {
+    id: 'yon-metalik-yukaridan-asagiya',
+    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru metalik aktiflik (elektron verme kolaylığı) nasıl değişir?',
+    answer: 'Artar (Fransiyum ve Sezyum en aktif metallerdir)',
+    category: 'Oksit & Asit Karakteri',
+    examHighlight: 'Metaller elektron vererek reaksiyona girer. Çap büyüdükçe elektron vermek kolaylaşır, metalik reaktivite tavan yapar.'
+  },
+  {
+    id: 'yon-ametalik-soldan-saga',
+    question: 'Aynı periyotta SOLDAN SAĞA doğru ametalik aktiflik (elektron alma isteği) nasıl değişir?',
+    answer: 'Artar (Flor periyodun ve tablonun en aktif ametalidir)',
+    category: 'Oksit & Asit Karakteri',
+    examHighlight: 'Çap küçüldükçe dışarıdan elektron yakalama isteği artar. 7A halojenleri periyotlarının en aktif ametalleridir.'
+  },
+  {
+    id: 'yon-katman-des-periyot',
+    question: 'Aynı periyotta SOLDAN SAĞA doğru değerlik elektron sayısı ve katman sayısı nasıl değişir?',
+    answer: 'Değerlik elektron sayısı artar (1 den 8 e), Katman sayısı DEĞİŞMEZ',
+    category: 'Atom Çapı',
+    examHighlight: 'Aynı periyottaki tüm elementlerin baş kuantum (katman) sayısı eşittir; periyot numarası katman sayısını verir.'
+  },
+  {
+    id: 'yon-des-grup',
+    question: 'Aynı grupta YUKARIDAN AŞAĞIYA doğru değerlik elektron sayısı nasıl değişir?',
+    answer: 'Değişmez (İstisna: He 2, gruptaki diğerleri 8 dir)',
+    category: 'Atom Çapı',
+    examHighlight: 'HELYUM TUZAĞI: 8A daki Helyum 2 değerlik elektronuna sahiptir; altındaki Ne, Ar, Kr ise 8 elektrona sahiptir.'
   }
 ];

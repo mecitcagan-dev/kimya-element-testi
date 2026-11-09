@@ -6,6 +6,7 @@ import { QuizScreen } from './components/Quiz/QuizScreen';
 import { ResultScreen } from './components/Result/ResultScreen';
 import { TopicReferenceModal } from './components/Reference/TopicReferenceModal';
 import { PeriodicTableView } from './components/PeriodicTable/PeriodicTableView';
+import { PeriodicTrendsExplorer } from './components/PeriodicTable/PeriodicTrendsExplorer';
 import { TOPIC_MAP } from './data/topics';
 import { TopicId } from './types/topics';
 
@@ -13,6 +14,7 @@ export const App: React.FC = () => {
   const session = useQuizSession();
   const [referenceTopicId, setReferenceTopicId] = useState<TopicId | null>(null);
   const [isSetupPeriodicOpen, setIsSetupPeriodicOpen] = useState(false);
+  const [isTrendsExplorerOpen, setIsTrendsExplorerOpen] = useState(false);
 
   // Klavye olayları bağlama
   useKeyboard({
@@ -54,6 +56,7 @@ export const App: React.FC = () => {
             onStartQuiz={session.startQuiz}
             onOpenPeriodicTable={() => setIsSetupPeriodicOpen(prev => !prev)}
             onOpenTopicReference={topicId => setReferenceTopicId(topicId)}
+            onOpenTrendsExplorer={() => setIsTrendsExplorerOpen(true)}
           />
 
           {isSetupPeriodicOpen && (
@@ -119,6 +122,46 @@ export const App: React.FC = () => {
         isOpen={referenceTopicId !== null}
         onClose={() => setReferenceTopicId(null)}
       />
+
+      {/* Periyodik Sistem Değişim Pusulası Modalı */}
+      {isTrendsExplorerOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '16px',
+            backdropFilter: 'blur(5px)'
+          }}
+          onClick={() => setIsTrendsExplorerOpen(false)}
+        >
+          <div
+            style={{ maxWidth: '900px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <PeriodicTrendsExplorer
+              onClose={() => setIsTrendsExplorerOpen(false)}
+              onStartTrendQuiz={() => {
+                setIsTrendsExplorerOpen(false);
+                session.startQuiz({
+                  quiz: 'periodic_trends',
+                  kind: 'range',
+                  total: 20,
+                  retry: true,
+                  mode: 'choice',
+                  includeCompoundType: false
+                });
+              }}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 };

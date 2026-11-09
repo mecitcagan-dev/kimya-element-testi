@@ -11,12 +11,14 @@ interface SetupScreenProps {
   onStartQuiz: (cfg: QuizConfig) => void;
   onOpenPeriodicTable: () => void;
   onOpenTopicReference: (topicId: TopicId) => void;
+  onOpenTrendsExplorer: () => void;
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({
   onStartQuiz,
   onOpenPeriodicTable,
-  onOpenTopicReference
+  onOpenTopicReference,
+  onOpenTrendsExplorer
 }) => {
   // Sınav kategorisi filtresi: 'all' | 'tyt_ayt' | 'tyt' | 'ayt'
   const [examCat, setExamCat] = useState<ExamCategory>('all');
@@ -141,6 +143,42 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
         </p>
       </header>
 
+      {/* Periyodik Sistem Değişim Pusulası Hızlı Erişim Bandı */}
+      <div
+        style={{
+          margin: '16px 0',
+          padding: '12px 16px',
+          backgroundColor: 'var(--card-2)',
+          border: '1px solid var(--border-2)',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '26px' }}>🧭</span>
+          <div>
+            <strong style={{ fontSize: '15px', color: '#ffd43b' }}>
+              Periyodik Tablo Değişim Pusulası
+            </strong>
+            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+              Soldan sağa ve yukarıdan aşağıya ne artar, ne azalır, bilimsel nedeni ve ÖSYM istisnaları!
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn secondary small"
+          onClick={onOpenTrendsExplorer}
+          style={{ borderColor: '#ffd43b66', color: '#ffd43b' }}
+        >
+          🧭 Pusulayı Aç ➡️
+        </button>
+      </div>
+
       {/* 1. Sınav Kategorisi Sekmeleri */}
       <div className="exam-tabs" role="tablist" aria-label="Sınav kategorisi">
         <button
@@ -237,13 +275,22 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
             <span style={{ fontSize: '22px' }}>{selectedTopic.icon}</span>
             <strong style={{ fontSize: '18px' }}>{selectedTopic.title} Ayarları</strong>
           </div>
-          <button
-            type="button"
-            className="btn secondary small"
-            onClick={() => onOpenTopicReference(selectedTopic.id)}
-          >
-            📖 Konu Listesini İncele
-          </button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn ghost small"
+              onClick={onOpenTrendsExplorer}
+            >
+              🧭 Değişim Pusulası
+            </button>
+            <button
+              type="button"
+              className="btn secondary small"
+              onClick={() => onOpenTopicReference(selectedTopic.id)}
+            >
+              📖 Konu Listesini İncele
+            </button>
+          </div>
         </div>
 
         {/* Element Aralık Seçimi */}

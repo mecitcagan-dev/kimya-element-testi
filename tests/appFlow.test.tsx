@@ -69,4 +69,28 @@ describe('App Flow & Multi-Topic System', () => {
     fireEvent.click(closeBtns[0]);
     expect(screen.queryByText(/Çalışma Kartları/i)).toBeNull();
   });
+
+  it('can open and switch directions in Periodic Trends Explorer (Değişim Pusulası)', () => {
+    render(<App />);
+
+    // Pusula açma butonuna tıkla
+    const openCompassBtn = screen.getByRole('button', { name: /Pusulayı Aç/i });
+    expect(openCompassBtn).toBeDefined();
+    fireEvent.click(openCompassBtn);
+
+    // Explorer başlığı görünüyor mu?
+    expect(screen.getByText('Periyodik Sistem Değişim Pusulası')).toBeDefined();
+
+    // Yukarıdan Aşağıya yönüne tıkla
+    const downDirectionBtn = screen.getByRole('button', { name: /Yukarıdan Aşağıya/i });
+    fireEvent.click(downDirectionBtn);
+
+    // Yukarıdan aşağıya özeti ekranda mı?
+    expect(screen.getByText(/Aynı Grupta \(1\. Periyot → 7\. Periyot\)/i)).toBeDefined();
+
+    // Kapat
+    const closeBtns = screen.getAllByRole('button', { name: 'Kapat' });
+    fireEvent.click(closeBtns[0]);
+    expect(screen.queryByText('Periyodik Sistem Değişim Pusulası')).toBeNull();
+  });
 });
