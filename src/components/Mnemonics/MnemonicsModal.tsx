@@ -28,8 +28,11 @@ export const MnemonicsModal: React.FC<MnemonicsModalProps> = ({
     { id: 'compound_rules', label: '🧪 Bileşik Türü (Asit/Baz/Tuz/Oksit)', icon: '🧪' },
     { id: 'atomic_models', label: '⚛️ Atom & Tarihçe (DeDen TRabzonlu...)', icon: '⚛️' },
     { id: 'metals_activity', label: '⚡ Metaller & Aktiflik (Zengin Pabuçlu...)', icon: '⚡' },
-    { id: 'periodic_groups', label: '🔤 Element Grupları (Cop Hasan...)', icon: '🔤' },
-    { id: 'electrochemistry_gas', label: '🔋 Elektrokimya & Gazlar (KİMYA...)', icon: '🔋' }
+    { id: 'interactions_polarity', label: '🧲 Etkileşimler & Polarite (FON, Şapka...)', icon: '🧲' },
+    { id: 'periodic_trends', label: '🧭 Periyodik Eğilimler (Kardan Adam, 3 Aşağı...)', icon: '🧭' },
+    { id: 'gases_solutions', label: '🎈 Gazlar & Çözeltiler (Paran Varsa, 10 Maymun...)', icon: '🎈' },
+    { id: 'energy_kinetics_equilibrium', label: '⚖️ Enerji, Hız & Denge (Katalizör...)', icon: '⚖️' },
+    { id: 'electrochemistry_organic', label: '🔋 Elektrokimya & Organik (KİMYA, UÇ-AL-FOR...)', icon: '🔋' }
   ];
 
   const filteredItems = CHEMISTRY_MNEMONICS.filter(item => {

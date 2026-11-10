@@ -147,4 +147,35 @@ describe('App Flow & Multi-Topic System', () => {
     expect(screen.getByText(/Kimya Kodlamaları & Püf Noktaları Rehberi/i)).toBeDefined();
     expect(screen.getByText(/Bileşiğin ASİT Olduğu Nasıl Anlaşılır\?/i)).toBeDefined();
   });
+
+  it('can search and filter through rich TYT & AYT mnemonics (Denizde Yüzen On Maymun, Markovnikov, KİMYA)', () => {
+    render(<App />);
+
+    // Modalı aç
+    const openMnemonicsBtn = screen.getByRole('button', { name: /Rehberi İncele 💡/i });
+    fireEvent.click(openMnemonicsBtn);
+
+    // "Tümü" sekmesine geç
+    const allTab = screen.getByRole('button', { name: /Tümü/i });
+    fireEvent.click(allTab);
+
+    // Arama kutusu
+    const searchInput = screen.getByPlaceholderText(/Kodlama, formül veya kural ara/i);
+
+    // 1. "Maymun" araması -> Denizde Yüzen On Maymun
+    fireEvent.change(searchInput, { target: { value: 'Maymun' } });
+    expect(screen.getAllByText(/Denizde Yüzen On Maymun/i).length).toBeGreaterThan(0);
+
+    // 2. "Markovnikov" araması -> Zengine Zengin, Fakire Fakir
+    fireEvent.change(searchInput, { target: { value: 'Markovnikov' } });
+    expect(screen.getAllByText(/Zengine Zengin, Fakire Fakir/i).length).toBeGreaterThan(0);
+
+    // 3. "Elektroliz" araması -> Suyun Elektrolizi
+    fireEvent.change(searchInput, { target: { value: 'Elektroliz' } });
+    expect(screen.getAllByText(/Suyun Elektrolizi/i).length).toBeGreaterThan(0);
+
+    // Modalı kapat
+    const closeBtns = screen.getAllByRole('button', { name: 'Kapat' });
+    fireEvent.click(closeBtns[0]);
+  });
 });
