@@ -93,4 +93,58 @@ describe('App Flow & Multi-Topic System', () => {
     fireEvent.click(closeBtns[0]);
     expect(screen.queryByText('Periyodik Sistem Değişim Pusulası')).toBeNull();
   });
+
+  it('can open and use Chemistry Mnemonics & Tricks Modal (Kodlamalar & Püf Noktaları)', () => {
+    render(<App />);
+
+    // 1. Üst bannerdaki "Rehberi İncele 💡" butonuna tıkla
+    const openMnemonicsBtn = screen.getByRole('button', { name: /Rehberi İncele 💡/i });
+    expect(openMnemonicsBtn).toBeDefined();
+    fireEvent.click(openMnemonicsBtn);
+
+    // 2. Modal başlığı görünüyor mu?
+    expect(screen.getByText(/Kimya Kodlamaları & Püf Noktaları Rehberi/i)).toBeDefined();
+
+    // 3. Varsayılan olarak Bileşik Türü Püf Noktaları sekmesinde olmalı
+    expect(screen.getByText(/Bileşiğin ASİT Olduğu Nasıl Anlaşılır\?/i)).toBeDefined();
+
+    // 4. "Atom & Tarihçe" sekmesine geç
+    const atomicTab = screen.getByRole('button', { name: /Atom & Tarihçe/i });
+    fireEvent.click(atomicTab);
+
+    // 5. "DeDen TRabzonlu mu?" hafıza kodu görünüyor mu?
+    expect(screen.getByText(/DeDen TRabzonlu mu\?/i)).toBeDefined();
+    expect(screen.getByText(/Dalton → Thomson → Rutherford → Bohr → Modern/i)).toBeDefined();
+
+    // 6. Arama kutusuna "Zengin" yaz
+    const searchInput = screen.getByPlaceholderText(/Kodlama, formül veya kural ara/i);
+    fireEvent.change(searchInput, { target: { value: 'Zengin' } });
+
+    // "Tümü" sekmesine tıkla veya filtreyi doğrula
+    const allTab = screen.getByRole('button', { name: /Tümü/i });
+    fireEvent.click(allTab);
+    expect(screen.getByText(/Zengin Pabuçlu Beyaz Karısına Alttan Sandık/i)).toBeDefined();
+
+    // 7. Modalı kapat
+    const closeBtns = screen.getAllByRole('button', { name: 'Kapat' });
+    fireEvent.click(closeBtns[0]);
+    expect(screen.queryByText(/Kimya Kodlamaları & Püf Noktaları Rehberi/i)).toBeNull();
+  });
+
+  it('can open mnemonics modal directly from compound type hint button', () => {
+    render(<App />);
+
+    // Yaygın Bileşikler konusuna tıkla
+    const compoundCard = screen.getByText('Yaygın Bileşikler');
+    fireEvent.click(compoundCard);
+
+    // "💡 Asit/Baz/Tuz Nasıl Bulunur? (Püf Noktaları)" butonuna tıkla
+    const hintBtn = screen.getByRole('button', { name: /Asit\/Baz\/Tuz Nasıl Bulunur\?/i });
+    expect(hintBtn).toBeDefined();
+    fireEvent.click(hintBtn);
+
+    // Modal açıldı ve doğrudan bileşik kurallarını gösteriyor mu?
+    expect(screen.getByText(/Kimya Kodlamaları & Püf Noktaları Rehberi/i)).toBeDefined();
+    expect(screen.getByText(/Bileşiğin ASİT Olduğu Nasıl Anlaşılır\?/i)).toBeDefined();
+  });
 });

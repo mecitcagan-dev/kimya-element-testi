@@ -12,13 +12,15 @@ interface SetupScreenProps {
   onOpenPeriodicTable: () => void;
   onOpenTopicReference: (topicId: TopicId) => void;
   onOpenTrendsExplorer: () => void;
+  onOpenMnemonics: (initialCategory?: string) => void;
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({
   onStartQuiz,
   onOpenPeriodicTable,
   onOpenTopicReference,
-  onOpenTrendsExplorer
+  onOpenTrendsExplorer,
+  onOpenMnemonics
 }) => {
   // Sınav kategorisi filtresi: 'all' | 'tyt_ayt' | 'tyt' | 'ayt'
   const [examCat, setExamCat] = useState<ExamCategory>('all');
@@ -143,40 +145,82 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
         </p>
       </header>
 
-      {/* Periyodik Sistem Değişim Pusulası Hızlı Erişim Bandı */}
+      {/* Öğrenci Kılavuzları & Hızlı Araçlar Bandı */}
       <div
         style={{
-          margin: '16px 0',
-          padding: '12px 16px',
-          backgroundColor: 'var(--card-2)',
-          border: '1px solid var(--border-2)',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
+          margin: '18px 0',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: '12px'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '26px' }}>🧭</span>
-          <div>
-            <strong style={{ fontSize: '15px', color: '#ffd43b' }}>
-              Periyodik Tablo Değişim Pusulası
-            </strong>
-            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
-              Soldan sağa ve yukarıdan aşağıya ne artar, ne azalır, bilimsel nedeni ve ÖSYM istisnaları!
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          className="btn secondary small"
-          onClick={onOpenTrendsExplorer}
-          style={{ borderColor: '#ffd43b66', color: '#ffd43b' }}
+        {/* 1. Periyodik Tablo Değişim Pusulası */}
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--card-2)',
+            border: '1px solid var(--border-2)',
+            borderRadius: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}
         >
-          🧭 Pusulayı Aç ➡️
-        </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '26px' }}>🧭</span>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#ffd43b' }}>
+                Değişim Pusulası
+              </strong>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+                Soldan sağa ve yukarıdan aşağıya ne artar, ne azalır?
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn secondary small"
+            onClick={onOpenTrendsExplorer}
+            style={{ borderColor: '#ffd43b66', color: '#ffd43b', flexShrink: 0 }}
+          >
+            Pusulayı Aç ➡️
+          </button>
+        </div>
+
+        {/* 2. Kimya Kodlamaları & Püf Noktaları Rehberi */}
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--card-2)',
+            border: '1px solid var(--border-2)',
+            borderRadius: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '26px' }}>💡</span>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#40c057' }}>
+                Kodlamalar & Püf Noktaları
+              </strong>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+                DeDen TRabzonlu mu, Zengin Pabuçlu, Asit/Baz bulma...
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn secondary small"
+            onClick={() => onOpenMnemonics()}
+            style={{ borderColor: '#40c05766', color: '#69db7c', flexShrink: 0 }}
+          >
+            Rehberi İncele 💡
+          </button>
+        </div>
       </div>
 
       {/* 1. Sınav Kategorisi Sekmeleri */}
@@ -330,7 +374,17 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
         {selectedTopic.hasTypeToggle && (
           <div className="field">
             <div className="field-label">
-              <span>{selectedTopic.typeToggleLabel || 'Kategori / Tür Seçimi'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span>{selectedTopic.typeToggleLabel || 'Kategori / Tür Seçimi'}</span>
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  style={{ padding: '3px 8px', fontSize: '12px', color: '#ffd43b', borderColor: '#ffd43b55' }}
+                  onClick={() => onOpenMnemonics('compound_rules')}
+                >
+                  💡 Asit/Baz/Tuz Nasıl Bulunur? (Püf Noktaları)
+                </button>
+              </div>
               <span className="hint" style={{ fontWeight: 'normal' }}>
                 {includeCompoundType ? 'Tür zorunluluğu var' : 'Türsüz - Yalnızca temel bilgi'}
               </span>

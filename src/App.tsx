@@ -7,6 +7,7 @@ import { ResultScreen } from './components/Result/ResultScreen';
 import { TopicReferenceModal } from './components/Reference/TopicReferenceModal';
 import { PeriodicTableView } from './components/PeriodicTable/PeriodicTableView';
 import { PeriodicTrendsExplorer } from './components/PeriodicTable/PeriodicTrendsExplorer';
+import { MnemonicsModal } from './components/Mnemonics/MnemonicsModal';
 import { TOPIC_MAP } from './data/topics';
 import { TopicId } from './types/topics';
 
@@ -15,6 +16,8 @@ export const App: React.FC = () => {
   const [referenceTopicId, setReferenceTopicId] = useState<TopicId | null>(null);
   const [isSetupPeriodicOpen, setIsSetupPeriodicOpen] = useState(false);
   const [isTrendsExplorerOpen, setIsTrendsExplorerOpen] = useState(false);
+  const [isMnemonicsOpen, setIsMnemonicsOpen] = useState(false);
+  const [mnemonicsCategory, setMnemonicsCategory] = useState<string>('compound_rules');
 
   // Klavye olayları bağlama
   useKeyboard({
@@ -57,6 +60,10 @@ export const App: React.FC = () => {
             onOpenPeriodicTable={() => setIsSetupPeriodicOpen(prev => !prev)}
             onOpenTopicReference={topicId => setReferenceTopicId(topicId)}
             onOpenTrendsExplorer={() => setIsTrendsExplorerOpen(true)}
+            onOpenMnemonics={(cat) => {
+              if (cat) setMnemonicsCategory(cat);
+              setIsMnemonicsOpen(true);
+            }}
           />
 
           {isSetupPeriodicOpen && (
@@ -162,6 +169,13 @@ export const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Kimya Kodlamaları & Püf Noktaları Modalı */}
+      <MnemonicsModal
+        isOpen={isMnemonicsOpen}
+        initialCategory={mnemonicsCategory}
+        onClose={() => setIsMnemonicsOpen(false)}
+      />
     </main>
   );
 };
