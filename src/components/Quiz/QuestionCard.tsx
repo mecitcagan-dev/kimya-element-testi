@@ -17,6 +17,7 @@ interface QuestionCardProps {
   warningMessage: string | null;
   categories: CategoryInfo[];
   lastFeedback: AnswerResult | null;
+  questionNumber: number;
   onTypedChange: (val: string) => void;
   onSelectChoice: (choice: string) => void;
   onSelectCategory: (catKey: string) => void;
@@ -34,6 +35,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   warningMessage,
   categories,
   lastFeedback,
+  questionNumber,
   onTypedChange,
   onSelectChoice,
   onSelectCategory,
@@ -46,7 +48,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const displayPrompt = question.standard.prompt;
   const promptSub = question.standard.promptSub;
 
-  // Uzun metinler (örn. laboratuvar malzemesi işlevi veya simyacı katkısı) için font boyutunu ayarla
   const isLongPrompt = displayPrompt.length > 25;
   const promptClass = isLongPrompt
     ? 'q-symbol is-name'
@@ -54,7 +55,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     ? 'q-symbol is-formula'
     : 'q-symbol';
 
-  // Otomatik odaklanma
   useEffect(() => {
     if (questionState === 'asking' && mode === 'type') {
       inputRef.current?.focus();
@@ -63,8 +63,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
-    // Bileşikte formül soruluyorsa otomatik alt simge dönüştür
-    if (question.quiz === 'compound' && question.dir === 'ad-formul') {
+    const isFormulaTarget =
+      (question.quiz === 'compound' && question.dir === 'ad-formul') ||
+      (question.quiz === 'compound_naming' && question.dir === 'name-form');
+    if (isFormulaTarget) {
       val = formatFormula(val);
     }
     onTypedChange(val);
@@ -79,21 +81,16 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   return (
     <article className={`card q-card ${!includeType ? 'no-cats' : ''}`}>
-      {/* Tekrar Sorusu Etiketi */}
-      {question.retry && (
-        <span className="q-tag">Tekrar</span>
-      )}
+      {/* Üst Bağlam & Tekrar Satırı */}
+      <div className="q-card-meta">
+        <span className="q-context-pill">Soru #{questionNumber}</span>
+        {question.retry && <span className="q-tag">Tekrar</span>}
+      </div>
 
       {/* Soru Ana Gösterimi */}
-      <div style={{ gridArea: 'sym', textAlign: 'center' }}>
-        <div className={promptClass} style={isLongPrompt ? { fontSize: 'clamp(20px, 4.5vw, 30px)', fontWeight: 700 } : {}}>
-          {displayPrompt}
-        </div>
-        {promptSub && (
-          <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '8px' }}>
-            {promptSub}
-          </div>
-        )}
+      <div className="q-prompt-zone">
+        <div className={promptClass}>{displayPrompt}</div>
+        {promptSub && <div className="q-prompt-sub">{promptSub}</div>}
       </div>
 
       {/* Giriş Alanı veya Seçenekler */}
@@ -130,12 +127,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         )}
         <p className="hint center kb-hint q-flow">
           {mode === 'choice'
-            ? (includeType
-                ? 'Şıkkı seç (Q, W, E, R) → Türü seç → Enter'
-                : 'Şıkkı seç (Q, W, E, R) → Enter ile onayla')
-            : (includeType
-                ? 'Cevabı yaz → Türü seç → Enter'
-                : 'Cevabı yaz → Enter')}
+            ? includeType
+              ? 'Şıkkı seç (Q, W, E, R) → Türü seç → Enter'
+              : 'Şıkkı seç (Q, W, E, R) → Enter ile onayla'
+            : includeType
+            ? 'Cevabı yaz → Türü seç → Enter'
+            : 'Cevabı yaz → Enter'}
         </p>
       </div>
 

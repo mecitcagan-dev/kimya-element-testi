@@ -55,25 +55,36 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
   const isElement = question.quiz === 'element';
 
   const isFiniteTotal = Number.isFinite(progress.total);
-  const pct = isFiniteTotal && progress.total > 0
-    ? Math.min(100, (progress.freshAnswered / progress.total) * 100)
-    : 0;
+  const pct =
+    isFiniteTotal && progress.total > 0
+      ? Math.min(100, (progress.freshAnswered / progress.total) * 100)
+      : 0;
+
+  const displayQuestionNum = Math.min(
+    isFiniteTotal ? progress.total : progress.freshAnswered + 1,
+    progress.freshAnswered + (questionState === 'asking' ? 1 : 0)
+  );
 
   return (
-    <section id="view-test">
-      {/* Üst Bar */}
+    <section id="view-test" className="quiz-shell">
+      {/* Üst HUD Bar */}
       <div className="topbar">
         <div className="stats">
           <div className="stat">
             <span className="stat-label">Konu</span>
-            <span className="stat-value" style={{ fontSize: '15px', color: topicInfo?.badgeColor || 'var(--text)' }}>
+            <span
+              className="stat-value"
+              style={{ fontSize: '15px', color: topicInfo?.badgeColor || 'var(--text)' }}
+            >
               {topicInfo?.icon} {topicInfo?.title}
             </span>
           </div>
           <div className="stat">
             <span className="stat-label">İlerleme</span>
             <span className="stat-value">
-              {isFiniteTotal ? `${progress.freshAnswered}/${progress.total}` : `${progress.freshAnswered} / ∞`}
+              {isFiniteTotal
+                ? `${progress.freshAnswered}/${progress.total}`
+                : `${progress.freshAnswered} / ∞`}
             </span>
           </div>
           <div className="stat">
@@ -82,7 +93,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
           </div>
           <div className="stat">
             <span className="stat-label">Seri</span>
-            <span className="stat-value">{progress.streak}</span>
+            <span className={`stat-value ${progress.streak >= 3 ? 'streak-hot' : ''}`}>
+              {progress.streak >= 3 ? `🔥 ${progress.streak}` : progress.streak}
+            </span>
           </div>
         </div>
 
@@ -122,6 +135,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
         warningMessage={warningMessage}
         categories={categories}
         lastFeedback={lastFeedback}
+        questionNumber={Math.max(1, displayQuestionNum)}
         onTypedChange={onTypedChange}
         onSelectChoice={onSelectChoice}
         onSelectCategory={onSelectCategory}

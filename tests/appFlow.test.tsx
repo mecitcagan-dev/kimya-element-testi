@@ -319,4 +319,40 @@ describe('App Flow & Multi-Topic System', () => {
     const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
     expect(choicesGroup.querySelectorAll('button.opt').length).toBe(4);
   });
+
+  it('supports theme switching, live topic search with empty state reset, and reference modal search', () => {
+    render(<App />);
+
+    // 1. Tema anahtarı: Koyu -> Açık -> Koyu
+    const themeBtn = screen.getByRole('button', { name: /Açık temaya geç/i });
+    fireEvent.click(themeBtn);
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(window.localStorage.getItem('elementTesti.theme')).toBe('light');
+
+    const darkBtn = screen.getByRole('button', { name: /Koyu temaya geç/i });
+    fireEvent.click(darkBtn);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+
+    // 2. Konu arama kutusu ve boş durum sıfırlama
+    const searchInput = screen.getByRole('searchbox', { name: /Konu veya kavram ara/i });
+    fireEvent.change(searchInput, { target: { value: 'adlandırma' } });
+    expect(screen.getByText('Sistematik Bileşik Adlandırma (IUPAC)')).toBeDefined();
+    expect(screen.queryByText('Yaygın Bileşikler')).toBeNull();
+
+    fireEvent.change(searchInput, { target: { value: 'olmayankonuxyz' } });
+    expect(screen.getByText(/Eşleşen konu bulunamadı/i)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /Filtreleri Sıfırla/i }));
+    expect(screen.getByText('Yaygın Bileşikler')).toBeDefined();
+
+    // 3. Konu seçip Konu Listesini İncele modalında canlı filtreleme
+    fireEvent.click(screen.getByText('Sistematik Bileşik Adlandırma (IUPAC)'));
+    fireEvent.click(screen.getByRole('button', { name: /📖 Konu Listesini İncele/i }));
+    const dialog = screen.getByRole('dialog');
+    const modalSearch = within(dialog).getByRole('searchbox', {
+      name: /Çalışma kartlarında ara/i
+    });
+    fireEvent.change(modalSearch, { target: { value: 'sülfat' } });
+    expect(within(dialog).getAllByText(/sülfat/i).length).toBeGreaterThan(0);
+    fireEvent.click(within(dialog).getAllByRole('button', { name: 'Kapat' })[0]);
+  });
 });

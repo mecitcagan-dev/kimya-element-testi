@@ -18,24 +18,34 @@ export const FeedbackCard: React.FC<FeedbackCardProps> = ({
   const { nameOk, catOk, full, correctText, userText, correctCat, userCat, includeType } = feedback;
 
   const mood = includeType
-    ? (full ? 'good' : (nameOk || catOk) ? 'mixed' : 'bad')
-    : (full ? 'good' : 'bad');
+    ? full
+      ? 'good'
+      : nameOk || catOk
+      ? 'mixed'
+      : 'bad'
+    : full
+    ? 'good'
+    : 'bad';
 
   const title = includeType
-    ? (full ? 'Doğru!' : (nameOk || catOk) ? 'Kısmen doğru' : 'Yanlış')
-    : (full ? 'Doğru!' : 'Yanlış');
+    ? full
+      ? 'Doğru!'
+      : nameOk || catOk
+      ? 'Kısmen doğru'
+      : 'Yanlış'
+    : full
+    ? 'Doğru!'
+    : 'Yanlış';
 
   const infoChips = question.standard.infoChips || [];
 
   return (
     <section className={`card feedback ${mood}`} aria-live="polite">
-      <div className="fb-title">{title}</div>
+      <div className={`fb-title ${mood}`}>{title}</div>
 
-      {/* İsim / Formül / Cevap Satırı */}
+      {/* Cevap Satırı */}
       <div className="fb-row">
-        <div className={`fb-icon ${nameOk ? 'ok' : 'no'}`}>
-          {nameOk ? '✓' : '✗'}
-        </div>
+        <div className={`fb-icon ${nameOk ? 'ok' : 'no'}`}>{nameOk ? '✓' : '✗'}</div>
         <div>
           <div className="fb-label">Cevap</div>
           <div className="fb-val">
@@ -52,12 +62,10 @@ export const FeedbackCard: React.FC<FeedbackCardProps> = ({
         </div>
       </div>
 
-      {/* Tür Satırı (Yalnızca tür dahilse gösterilir!) */}
+      {/* Tür Satırı (Yalnızca tür dahilse gösterilir) */}
       {includeType && (
         <div className="fb-row">
-          <div className={`fb-icon ${catOk ? 'ok' : 'no'}`}>
-            {catOk ? '✓' : '✗'}
-          </div>
+          <div className={`fb-icon ${catOk ? 'ok' : 'no'}`}>{catOk ? '✓' : '✗'}</div>
           <div>
             <div className="fb-label">Tür / Kategori</div>
             <div className="fb-val">
@@ -84,7 +92,7 @@ export const FeedbackCard: React.FC<FeedbackCardProps> = ({
 
       {/* Ek ÖSYM İpucu */}
       {question.standard.hint && (
-        <div className="hint" style={{ backgroundColor: 'var(--card-2)', padding: '10px 12px', borderRadius: '8px', borderLeft: '3px solid var(--accent)' }}>
+        <div className="fb-osym-tip">
           💡 <strong>ÖSYM İpucu:</strong> {question.standard.hint}
         </div>
       )}
