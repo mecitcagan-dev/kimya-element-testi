@@ -589,4 +589,69 @@ describe('App Flow & Multi-Topic System', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.getByRole('button', { name: /Testi Başlat/i })).toBeDefined();
   });
+
+  it('filters compound_naming by ionic-only, covalent-only, presets, multi-select custom chips, and CompoundBuilder quick launch', () => {
+    render(<App />);
+
+    // 1. Sistematik Bileşik Adlandırma (IUPAC) konusunu seç
+    fireEvent.click(screen.getByText('Sistematik Bileşik Adlandırma (IUPAC)'));
+    expect(
+      screen.getByRole('heading', { name: /Sistematik Bileşik Adlandırma \(IUPAC\) Ayarları/i })
+    ).toBeDefined();
+
+    // Varsayılan kapsam: Karışık (69 bileşik)
+    const presetGroup = screen.getByRole('group', {
+      name: /Adlandırma hazır çalışma paketleri/i
+    });
+    const chipsGroup = screen.getByRole('group', {
+      name: /Adlandırma alt konu grupları/i
+    });
+    expect(within(presetGroup).getByRole('button', { name: /Karışık \(Tümü\)/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText(/69 bileşik · Karışık/i)).toBeDefined();
+
+    // 2. "Sadece İyonikler (Tümü)" seçilince sadece 42 iyonik seçili olur
+    fireEvent.click(within(presetGroup).getByRole('button', { name: /Sadece İyonikler \(Tümü\)/i }));
+    expect(screen.getByText(/42 bileşik · Sadece İyonikler \(Tümü\)/i)).toBeDefined();
+    expect(within(chipsGroup).getByRole('button', { name: /Sabit İyonik/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(chipsGroup).getByRole('button', { name: /Romen Rakamlı İyonik/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(chipsGroup).getByRole('button', { name: /Çok Atomlu Kökler/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(chipsGroup).getByRole('button', { name: /Kovalent Ametaller/i }).getAttribute('aria-pressed')).toBe('false');
+    expect(within(chipsGroup).getByRole('button', { name: /Asit & Bazlar/i }).getAttribute('aria-pressed')).toBe('false');
+
+    // 3. Özel çoklu seçim ile "Romen Rakamlı İyonik" kapatıldığında 28 bileşiğe düşer ve "Temel İyon + Kök İyonlar" preset'i aktifleşir
+    fireEvent.click(within(chipsGroup).getByRole('button', { name: /Romen Rakamlı İyonik/i }));
+    expect(screen.getByText(/28 bileşik · Temel İyon \+ Kök İyonlar/i)).toBeDefined();
+
+    // 4. "Sadece Kovalent (Ametaller)" seçilince soru sayısı Tümü (16) havuzuna göre güncellenir ve quiz sadece kovalent sorar
+    fireEvent.click(within(presetGroup).getByRole('button', { name: /Sadece Kovalent \(Ametaller\)/i }));
+    expect(screen.getByText(/16 bileşik · Sadece Kovalent \(Ametaller\)/i)).toBeDefined();
+    expect(screen.getByRole('button', { name: /Tümü \(16\)/i })).toBeDefined();
+
+    // En az 1 grup aktif kalmalı: son aktif chip kapatılamaz
+    const covChip = within(chipsGroup).getByRole('button', { name: /Kovalent Ametaller/i });
+    fireEvent.click(covChip);
+    expect(covChip.getAttribute('aria-pressed')).toBe('true');
+
+    // Çalışma kartları modalında da grup filtresi çalışmalı
+    fireEvent.click(screen.getByRole('button', { name: /📖 Konu Listesini İncele/i }));
+    const refDialog = screen.getByRole('dialog');
+    fireEvent.click(within(refDialog).getByRole('button', { name: /🔗 Sadece Kovalent/i }));
+    expect(within(refDialog).getByText('16')).toBeDefined();
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    // 5. Quiz başlat -> gelen soru mutlaka Kovalent Bileşikler kategorisinden olmalı
+    fireEvent.click(screen.getByRole('button', { name: /Testi Başlat/i }));
+    expect(screen.getByText(/Kovalent Bileşikler \(Latince Ekler\) ·/)).toBeDefined();
+
+    // Setup'a dön ve Atölye içinden "Sadece İyonikleri Test Et" ile başlat
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.click(
+      screen.getByRole('button', { name: /İyon Çaprazlama & Adlandırma Atölyesini Aç/i })
+    );
+    const builderDialog = screen.getByRole('dialog');
+    fireEvent.click(within(builderDialog).getByRole('button', { name: /Sadece İyonikleri Test Et \(42\)/i }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText(/(Sabit Değerlikli İyonik|Değişken Değerlikli \(Romen Rakamlı\)|Çok Atomlu Kökler) ·/)).toBeDefined();
+  });
 });

@@ -1,10 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FormulaText } from '../Common/FormulaText';
+import {
+  CompoundNamingCategory,
+  COVALENT_NAMING_CATEGORIES,
+  IONIC_NAMING_CATEGORIES
+} from '../../data/compoundNaming';
 
 export interface CompoundBuilderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onStartNamingQuiz: () => void;
+  onStartNamingQuiz: (categories?: CompoundNamingCategory[]) => void;
 }
 
 type WorkshopTab = 'ionic' | 'covalent';
@@ -2042,8 +2047,22 @@ export const CompoundBuilderModal: React.FC<CompoundBuilderModalProps> = ({
             </button>
             <button
               type="button"
+              className="btn secondary small"
+              onClick={() =>
+                onStartNamingQuiz(
+                  activeTab === 'ionic' ? IONIC_NAMING_CATEGORIES : COVALENT_NAMING_CATEGORIES
+                )
+              }
+              style={{ padding: '10px 14px', fontSize: '13.5px' }}
+            >
+              {activeTab === 'ionic'
+                ? '⚡ Sadece İyonikleri Test Et (42)'
+                : '🔗 Sadece Kovalentleri Test Et (16)'}
+            </button>
+            <button
+              type="button"
               className="btn primary small"
-              onClick={onStartNamingQuiz}
+              onClick={() => onStartNamingQuiz()}
               style={{ padding: '10px 18px', fontSize: '14px' }}
             >
               🎯 Bileşik Adlandırma Testini Başlat

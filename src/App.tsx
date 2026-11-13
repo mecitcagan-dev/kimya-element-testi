@@ -282,7 +282,7 @@ export const App: React.FC = () => {
       <CompoundBuilderModal
         isOpen={isCompoundBuilderOpen}
         onClose={() => setIsCompoundBuilderOpen(false)}
-        onStartNamingQuiz={() => {
+        onStartNamingQuiz={namingCategories => {
           setIsCompoundBuilderOpen(false);
           session.startQuiz({
             quiz: 'compound_naming',
@@ -291,7 +291,8 @@ export const App: React.FC = () => {
             retry: true,
             mode: 'choice',
             dir: 'form-name',
-            includeCompoundType: false
+            includeCompoundType: false,
+            namingCategories
           });
         }}
       />

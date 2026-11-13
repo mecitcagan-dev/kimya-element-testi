@@ -2,6 +2,7 @@ import { ElementRangeKey } from '../types/chemistry';
 export type { ElementRangeKey };
 import { TopicId, StandardQuizItem } from './topics';
 import { ElementData, CompoundData } from './chemistry';
+import { CompoundNamingCategory } from '../data/compoundNaming';
 
 export type AnswerMode = 'type' | 'choice';
 
@@ -15,6 +16,7 @@ export interface QuizConfig {
   mode: AnswerMode;                     // 'type' (yazarak) | 'choice' (seçenekli)
   dir?: string;                         // Soru yönü (ad-formul, form-name, vb.)
   includeCompoundType: boolean;         // Bileşiklerde tür (Asit/Baz/Tuz/Oksit) sorulsun mu?
+  namingCategories?: CompoundNamingCategory[]; // Sistematik adlandırma kapsam seçimi
 }
 
 export interface QuestionItem {

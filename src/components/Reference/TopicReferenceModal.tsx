@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { TopicId } from '../../types/topics';
 import { TOPIC_MAP } from '../../data/topics';
 import { getTopicStandardItems } from '../../engine/quizEngine';
+import {
+  ALL_COMPOUND_NAMING_CATEGORIES,
+  COMPOUND_NAMING_CATEGORY_META,
+  CompoundNamingCategory,
+  COVALENT_NAMING_CATEGORIES,
+  IONIC_NAMING_CATEGORIES
+} from '../../data/compoundNaming';
 
 interface TopicReferenceModalProps {
   topicId: TopicId | null;
@@ -15,9 +22,11 @@ export const TopicReferenceModal: React.FC<TopicReferenceModalProps> = ({
   onClose
 }) => {
   const [query, setQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<CompoundNamingCategory[] | null>(null);
 
   useEffect(() => {
     setQuery('');
+    setSelectedCategories(null);
   }, [topicId, isOpen]);
 
   useEffect(() => {
@@ -37,7 +46,11 @@ export const TopicReferenceModal: React.FC<TopicReferenceModalProps> = ({
   const topic = TOPIC_MAP.get(topicId);
   if (!topic) return null;
 
-  const items = getTopicStandardItems(topicId);
+  const items = getTopicStandardItems(
+    topicId,
+    'ad-formul',
+    topicId === 'compound_naming' ? selectedCategories ?? undefined : undefined
+  );
   const normalizedQuery = query.trim().toLowerCase();
   const filteredItems = normalizedQuery
     ? items.filter(
@@ -92,6 +105,68 @@ export const TopicReferenceModal: React.FC<TopicReferenceModalProps> = ({
         <p className="hint" style={{ marginTop: '12px' }}>
           {topic.description} Toplam <strong>{items.length}</strong> madde listelenmiştir:
         </p>
+
+        {topicId === 'compound_naming' && (
+          <div className="ref-filter-chips" role="group" aria-label="Çalışma kartı grup filtresi">
+            <button
+              type="button"
+              className={`naming-cat-chip ${selectedCategories === null ? 'active' : ''}`}
+              aria-pressed={selectedCategories === null}
+              onClick={() => setSelectedCategories(null)}
+            >
+              🎲 Tümü
+            </button>
+            <button
+              type="button"
+              className={`naming-cat-chip ${
+                selectedCategories?.length === IONIC_NAMING_CATEGORIES.length &&
+                IONIC_NAMING_CATEGORIES.every(c => selectedCategories.includes(c))
+                  ? 'active'
+                  : ''
+              }`}
+              aria-pressed={
+                selectedCategories?.length === IONIC_NAMING_CATEGORIES.length &&
+                IONIC_NAMING_CATEGORIES.every(c => selectedCategories.includes(c))
+              }
+              onClick={() => setSelectedCategories(IONIC_NAMING_CATEGORIES)}
+            >
+              ⚡ Tüm İyonikler
+            </button>
+            <button
+              type="button"
+              className={`naming-cat-chip ${
+                selectedCategories?.length === 1 &&
+                selectedCategories[0] === COVALENT_NAMING_CATEGORIES[0]
+                  ? 'active'
+                  : ''
+              }`}
+              aria-pressed={
+                selectedCategories?.length === 1 &&
+                selectedCategories[0] === COVALENT_NAMING_CATEGORIES[0]
+              }
+              onClick={() => setSelectedCategories(COVALENT_NAMING_CATEGORIES)}
+            >
+              🔗 Sadece Kovalent
+            </button>
+            {ALL_COMPOUND_NAMING_CATEGORIES.map(cat => {
+              const meta = COMPOUND_NAMING_CATEGORY_META[cat];
+              const isSingleActive =
+                selectedCategories?.length === 1 && selectedCategories[0] === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`naming-cat-chip ${isSingleActive ? 'active' : ''}`}
+                  aria-pressed={isSingleActive}
+                  onClick={() => setSelectedCategories([cat])}
+                >
+                  <span aria-hidden="true">{meta.icon}</span>
+                  <span>{meta.shortLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {items.length > 6 && (
           <div className="search-box" style={{ marginTop: '10px' }}>

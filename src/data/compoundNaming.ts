@@ -28,6 +28,76 @@ export const COMPOUND_NAMING_CATEGORIES: TopicCategoryOption[] = [
   { key: 'Asit & Baz Sistematik Adları', rgb: '240,101,149' }
 ];
 
+export const ALL_COMPOUND_NAMING_CATEGORIES: CompoundNamingCategory[] =
+  COMPOUND_NAMING_CATEGORIES.map(c => c.key as CompoundNamingCategory);
+
+export const IONIC_NAMING_CATEGORIES: CompoundNamingCategory[] = [
+  'Sabit Değerlikli İyonik',
+  'Değişken Değerlikli (Romen Rakamlı)',
+  'Çok Atomlu Kökler'
+];
+
+export const COVALENT_NAMING_CATEGORIES: CompoundNamingCategory[] = [
+  'Kovalent Bileşikler (Latince Ekler)'
+];
+
+export interface CompoundNamingPreset {
+  id: string;
+  label: string;
+  shortDesc: string;
+  categories: CompoundNamingCategory[];
+}
+
+export const COMPOUND_NAMING_PRESETS: CompoundNamingPreset[] = [
+  {
+    id: 'all',
+    label: '🎲 Karışık (Tümü)',
+    shortDesc: 'İyonik + Kovalent + Kök + Asit/Baz',
+    categories: ALL_COMPOUND_NAMING_CATEGORIES
+  },
+  {
+    id: 'ionic_all',
+    label: '⚡ Sadece İyonikler (Tümü)',
+    shortDesc: 'Sabit + Değişken + Çok Atomlu Kökler',
+    categories: IONIC_NAMING_CATEGORIES
+  },
+  {
+    id: 'ionic_basic',
+    label: '🔹 Sadece Temel İyonlar',
+    shortDesc: '1A/2A/3A + Zn/Ag (Romen rakamsız)',
+    categories: ['Sabit Değerlikli İyonik']
+  },
+  {
+    id: 'covalent_only',
+    label: '🔗 Sadece Kovalent (Ametaller)',
+    shortDesc: 'Mono, di, tri… ametal molekülleri',
+    categories: COVALENT_NAMING_CATEGORIES
+  },
+  {
+    id: 'ionic_without_roman',
+    label: '🧩 Temel İyon + Kök İyonlar',
+    shortDesc: 'Romen rakamları hariç tüm iyonikler',
+    categories: ['Sabit Değerlikli İyonik', 'Çok Atomlu Kökler']
+  },
+  {
+    id: 'covalent_and_ab',
+    label: '🧪 Kovalent + Asit & Baz',
+    shortDesc: 'Ametal bileşikleri ve asit-baz adları',
+    categories: ['Kovalent Bileşikler (Latince Ekler)', 'Asit & Baz Sistematik Adları']
+  }
+];
+
+export const COMPOUND_NAMING_CATEGORY_META: Record<
+  CompoundNamingCategory,
+  { shortLabel: string; icon: string; rgb: string }
+> = {
+  'Sabit Değerlikli İyonik': { shortLabel: 'Sabit İyonik', icon: '⚡', rgb: '77,171,247' },
+  'Değişken Değerlikli (Romen Rakamlı)': { shortLabel: 'Romen Rakamlı İyonik', icon: '🔢', rgb: '255,146,43' },
+  'Çok Atomlu Kökler': { shortLabel: 'Çok Atomlu Kökler', icon: '🧩', rgb: '255,212,59' },
+  'Kovalent Bileşikler (Latince Ekler)': { shortLabel: 'Kovalent Ametaller', icon: '🔗', rgb: '56,217,217' },
+  'Asit & Baz Sistematik Adları': { shortLabel: 'Asit & Bazlar', icon: '💧', rgb: '240,101,149' }
+};
+
 export const COMPOUND_NAMING_ITEMS: CompoundNamingItem[] = [
   // =========================================================================
   // 1. SABİT DEĞERLİKLİ İYONİK BİLEŞİKLER (14 madde)
@@ -904,4 +974,57 @@ export function compoundNamingToQuizItem(
     ],
     hint: item.ruleNote
   };
+}
+
+export const COMPOUND_NAMING_CATEGORY_COUNTS: Record<CompoundNamingCategory, number> =
+  COMPOUND_NAMING_ITEMS.reduce(
+    (acc, item) => {
+      acc[item.category] = (acc[item.category] ?? 0) + 1;
+      return acc;
+    },
+    {
+      'Sabit Değerlikli İyonik': 0,
+      'Değişken Değerlikli (Romen Rakamlı)': 0,
+      'Çok Atomlu Kökler': 0,
+      'Kovalent Bileşikler (Latince Ekler)': 0,
+      'Asit & Baz Sistematik Adları': 0
+    } as Record<CompoundNamingCategory, number>
+  );
+
+export function getFilteredCompoundNamingItems(
+  categories?: CompoundNamingCategory[]
+): CompoundNamingItem[] {
+  if (!categories || categories.length === 0) {
+    return COMPOUND_NAMING_ITEMS;
+  }
+  const allowed = new Set(categories);
+  const filtered = COMPOUND_NAMING_ITEMS.filter(item => allowed.has(item.category));
+  return filtered.length > 0 ? filtered : COMPOUND_NAMING_ITEMS;
+}
+
+export function normalizeNamingCategories(
+  categories: CompoundNamingCategory[]
+): CompoundNamingCategory[] {
+  const allowed = new Set(categories);
+  const ordered = ALL_COMPOUND_NAMING_CATEGORIES.filter(cat => allowed.has(cat));
+  return ordered.length > 0 ? ordered : ALL_COMPOUND_NAMING_CATEGORIES;
+}
+
+export function matchNamingPreset(
+  selected: CompoundNamingCategory[]
+): CompoundNamingPreset | null {
+  const norm = normalizeNamingCategories(selected);
+  for (const preset of COMPOUND_NAMING_PRESETS) {
+    if (
+      preset.categories.length === norm.length &&
+      preset.categories.every((c, idx) => norm[idx] === c)
+    ) {
+      return preset;
+    }
+  }
+  return null;
+}
+
+export function getCompoundNamingCountChoices(poolCount: number): [number, number, number] {
+  return poolCount <= 16 ? [5, 10, poolCount] : [10, 20, poolCount];
 }

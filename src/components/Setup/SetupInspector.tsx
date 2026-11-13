@@ -4,6 +4,16 @@ import { AnswerMode, ElementRangeKey } from '../../types/quiz';
 import { AnimationSceneId } from '../Animations/ChemistryAnimationsModal';
 import { SegmentGroup } from './SegmentGroup';
 import { KeyBadge } from '../Common/KeyBadge';
+import {
+  ALL_COMPOUND_NAMING_CATEGORIES,
+  COMPOUND_NAMING_CATEGORY_COUNTS,
+  COMPOUND_NAMING_CATEGORY_META,
+  COMPOUND_NAMING_PRESETS,
+  CompoundNamingCategory,
+  getCompoundNamingCountChoices,
+  getFilteredCompoundNamingItems,
+  matchNamingPreset
+} from '../../data/compoundNaming';
 
 interface SetupInspectorProps {
   selectedTopic: TopicDefinition;
@@ -13,6 +23,8 @@ interface SetupInspectorProps {
   onDirectionChange: (val: string) => void;
   includeCompoundType: boolean;
   onIncludeCompoundTypeChange: (val: boolean) => void;
+  namingCategories: CompoundNamingCategory[];
+  onNamingCategoriesChange: (val: CompoundNamingCategory[]) => void;
   questionCount: number | 'inf';
   onQuestionCountChange: (val: number | 'inf') => void;
   answerMode: AnswerMode;
@@ -62,6 +74,8 @@ export const SetupInspector: React.FC<SetupInspectorProps> = ({
   onDirectionChange,
   includeCompoundType,
   onIncludeCompoundTypeChange,
+  namingCategories,
+  onNamingCategoriesChange,
   questionCount,
   onQuestionCountChange,
   answerMode,
@@ -86,6 +100,45 @@ export const SetupInspector: React.FC<SetupInspectorProps> = ({
   const contextualText = CONTEXTUAL_CALLOUT_TEXT[selectedTopicId];
 
   const hasContextualLab = Boolean(contextualText);
+
+  const namingPoolCount =
+    selectedTopicId === 'compound_naming'
+      ? getFilteredCompoundNamingItems(namingCategories).length
+      : 0;
+  const activeNamingPreset =
+    selectedTopicId === 'compound_naming' ? matchNamingPreset(namingCategories) : null;
+
+  const handleToggleNamingCategory = (cat: CompoundNamingCategory) => {
+    const exists = namingCategories.includes(cat);
+    if (exists) {
+      if (namingCategories.length <= 1) return; // En az 1 grup aktif kalmalı
+      onNamingCategoriesChange(namingCategories.filter(c => c !== cat));
+    } else {
+      onNamingCategoriesChange([...namingCategories, cat]);
+    }
+  };
+
+  const countOptions =
+    selectedTopicId === 'compound_naming'
+      ? (() => {
+          const [c1, c2, c3] = getCompoundNamingCountChoices(namingPoolCount);
+          return [
+            { value: c1 as number | 'inf', label: String(c1), keyBadge: 'A' },
+            { value: c2 as number | 'inf', label: String(c2), keyBadge: 'S' },
+            { value: c3 as number | 'inf', label: `Tümü (${c3})`, keyBadge: 'D' },
+            { value: 'inf' as number | 'inf', label: 'Sonsuz', keyBadge: 'F' }
+          ];
+        })()
+      : [
+          { value: 10 as number | 'inf', label: '10', keyBadge: 'A' },
+          { value: 20 as number | 'inf', label: '20', keyBadge: 'S' },
+          {
+            value: selectedTopic.defaultCount as number | 'inf',
+            label: String(selectedTopic.defaultCount),
+            keyBadge: 'D'
+          },
+          { value: 'inf' as number | 'inf', label: 'Sonsuz', keyBadge: 'F' }
+        ];
 
   return (
     <aside className="card setup-inspector" aria-label="Seçili konu ayarları">
@@ -200,6 +253,89 @@ export const SetupInspector: React.FC<SetupInspectorProps> = ({
         </div>
       )}
 
+      {/* Sistematik Bileşik Adlandırma Kapsam Seçimi */}
+      {selectedTopicId === 'compound_naming' && (
+        <div className="field naming-scope-field">
+          <div className="field-label">
+            <span>Çalışma Kapsamı (Bileşik Grubu)</span>
+            <span className="naming-pool-badge">
+              {namingPoolCount} bileşik ·{' '}
+              {activeNamingPreset
+                ? activeNamingPreset.id === 'all'
+                  ? 'Karışık'
+                  : activeNamingPreset.label.replace(/^[^ ]+ /, '')
+                : `${namingCategories.length} grup`}
+            </span>
+          </div>
+
+          <div
+            className="naming-presets-grid"
+            role="group"
+            aria-label="Adlandırma hazır çalışma paketleri"
+          >
+            {COMPOUND_NAMING_PRESETS.map(preset => {
+              const isPresetActive = activeNamingPreset?.id === preset.id;
+              const presetCount = getFilteredCompoundNamingItems(preset.categories).length;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={`naming-preset-btn ${isPresetActive ? 'active' : ''}`}
+                  aria-pressed={isPresetActive}
+                  onClick={() => onNamingCategoriesChange(preset.categories)}
+                >
+                  <div className="naming-preset-top">
+                    <span className="naming-preset-title">{preset.label}</span>
+                    <span className="naming-preset-count">{presetCount}</span>
+                  </div>
+                  <span className="naming-preset-desc">{preset.shortDesc}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="naming-custom-label">
+            Özel seçim (istediğin grupları aç/kapat):
+          </div>
+          <div
+            className="naming-category-chips"
+            role="group"
+            aria-label="Adlandırma alt konu grupları"
+          >
+            {ALL_COMPOUND_NAMING_CATEGORIES.map(cat => {
+              const meta = COMPOUND_NAMING_CATEGORY_META[cat];
+              const count = COMPOUND_NAMING_CATEGORY_COUNTS[cat];
+              const isChecked = namingCategories.includes(cat);
+              const isOnlyOneLeft = isChecked && namingCategories.length === 1;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`naming-cat-chip ${isChecked ? 'active' : ''}`}
+                  aria-pressed={isChecked}
+                  title={
+                    isOnlyOneLeft
+                      ? 'En az 1 bileşik grubu seçili olmalıdır'
+                      : `${cat} (${count} bileşik)`
+                  }
+                  style={
+                    isChecked
+                      ? ({ '--cat-rgb': meta.rgb } as React.CSSProperties)
+                      : undefined
+                  }
+                  onClick={() => handleToggleNamingCategory(cat)}
+                >
+                  <span aria-hidden="true">{isChecked ? '☑' : '☐'}</span>
+                  <span aria-hidden="true">{meta.icon}</span>
+                  <span>{meta.shortLabel}</span>
+                  <span className="naming-cat-count">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Çoklu Yön Seçimi */}
       {selectedTopic.directions && selectedTopic.directions.length > 0 && (
         <div className="field">
@@ -247,12 +383,7 @@ export const SetupInspector: React.FC<SetupInspectorProps> = ({
         <div className="field-label">Soru sayısı</div>
         <SegmentGroup<number | 'inf'>
           columns={4}
-          options={[
-            { value: 10, label: '10', keyBadge: 'A' },
-            { value: 20, label: '20', keyBadge: 'S' },
-            { value: selectedTopic.defaultCount, label: String(selectedTopic.defaultCount), keyBadge: 'D' },
-            { value: 'inf', label: 'Sonsuz', keyBadge: 'F' }
-          ]}
+          options={countOptions}
           value={questionCount}
           onChange={onQuestionCountChange}
         />

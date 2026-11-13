@@ -8,6 +8,13 @@ import { StudioStrip } from './StudioStrip';
 import { TopicExplorer } from './TopicExplorer';
 import { SetupInspector } from './SetupInspector';
 import { AnimationSceneId } from '../Animations/ChemistryAnimationsModal';
+import {
+  ALL_COMPOUND_NAMING_CATEGORIES,
+  CompoundNamingCategory,
+  getCompoundNamingCountChoices,
+  getFilteredCompoundNamingItems,
+  normalizeNamingCategories
+} from '../../data/compoundNaming';
 
 interface SetupScreenProps {
   onStartQuiz: (cfg: QuizConfig) => void;
@@ -67,6 +74,24 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
     return saved !== null ? saved === 'true' : true;
   });
 
+  const [namingCategories, setNamingCategories] = useState<CompoundNamingCategory[]>(() => {
+    const saved = readStored(KEYS.namingCategories);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter((c): c is CompoundNamingCategory =>
+            ALL_COMPOUND_NAMING_CATEGORIES.includes(c as CompoundNamingCategory)
+          );
+          if (valid.length > 0) return normalizeNamingCategories(valid);
+        }
+      } catch {
+        /* yoksay */
+      }
+    }
+    return ALL_COMPOUND_NAMING_CATEGORIES;
+  });
+
   const selectedTopic = TOPIC_MAP.get(selectedTopicId) || ALL_TOPICS[0];
 
   const weakIdsByTopic = useMemo(() => {
@@ -97,6 +122,14 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
     setSelectedTopicId(id);
     writeStored(KEYS.tab, id);
     const nextTopic = TOPIC_MAP.get(id);
+    if (id === 'compound_naming') {
+      const poolCount = getFilteredCompoundNamingItems(namingCategories).length;
+      const validNums = getCompoundNamingCountChoices(poolCount);
+      if (questionCount !== 'inf' && !validNums.includes(questionCount)) {
+        setQuestionCount(poolCount);
+      }
+      return;
+    }
     if (
       nextTopic &&
       questionCount !== 10 &&
@@ -104,6 +137,17 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
       questionCount !== 'inf'
     ) {
       setQuestionCount(nextTopic.defaultCount);
+    }
+  };
+
+  const handleNamingCategoriesChange = (next: CompoundNamingCategory[]) => {
+    const normalized = normalizeNamingCategories(next);
+    setNamingCategories(normalized);
+    writeStored(KEYS.namingCategories, JSON.stringify(normalized));
+    const poolCount = getFilteredCompoundNamingItems(normalized).length;
+    const validNums = getCompoundNamingCountChoices(poolCount);
+    if (questionCount !== 'inf' && !validNums.includes(questionCount)) {
+      setQuestionCount(poolCount);
     }
   };
 
@@ -137,7 +181,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
       retry: retryWrong,
       mode: answerMode,
       dir: direction,
-      includeCompoundType: supportsTypeQuestion ? includeCompoundType : false
+      includeCompoundType: supportsTypeQuestion ? includeCompoundType : false,
+      namingCategories: selectedTopicId === 'compound_naming' ? namingCategories : undefined
     });
   };
 
@@ -188,6 +233,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           onDirectionChange={setDirection}
           includeCompoundType={includeCompoundType}
           onIncludeCompoundTypeChange={handleIncludeCompoundTypeChange}
+          namingCategories={namingCategories}
+          onNamingCategoriesChange={handleNamingCategoriesChange}
           questionCount={questionCount}
           onQuestionCountChange={setQuestionCount}
           answerMode={answerMode}

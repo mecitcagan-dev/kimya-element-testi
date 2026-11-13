@@ -18,7 +18,11 @@ import { VSEPR_MOLECULES } from '../data/vsepr';
 import { METAL_REACTIONS } from '../data/metalReactions';
 import { ORGANIC_TESTS } from '../data/organicTests';
 import { PERIODIC_TRENDS } from '../data/periodicTrends';
-import { COMPOUND_NAMING_ITEMS, compoundNamingToQuizItem } from '../data/compoundNaming';
+import {
+  CompoundNamingCategory,
+  compoundNamingToQuizItem,
+  getFilteredCompoundNamingItems
+} from '../data/compoundNaming';
 import { MIXTURES_SEPARATION, mixtureSeparationToQuizItem } from '../data/mixturesSeparation';
 import { EVERYDAY_CHEMISTRY, everydayChemistryToQuizItem } from '../data/everydayChemistry';
 import { ENVIRONMENTAL_CHEMISTRY, environmentalChemistryToQuizItem } from '../data/environmentalChemistry';
@@ -33,7 +37,11 @@ export const isFormulaAsk = (q: QuestionItem): boolean =>
   (q.quiz === 'compound' && q.dir === 'ad-formul') ||
   (q.quiz === 'compound_naming' && q.dir === 'name-form');
 
-export function getTopicStandardItems(topicId: TopicId, dir = 'ad-formul'): StandardQuizItem[] {
+export function getTopicStandardItems(
+  topicId: TopicId,
+  dir = 'ad-formul',
+  namingCategories?: CompoundNamingCategory[]
+): StandardQuizItem[] {
   switch (topicId) {
     case 'element':
       return ELEMENTS.map(el => ({
@@ -202,7 +210,9 @@ export function getTopicStandardItems(topicId: TopicId, dir = 'ad-formul'): Stan
 
     case 'compound_naming': {
       const namingDir = dir === 'name-form' ? 'name-form' : 'form-name';
-      return COMPOUND_NAMING_ITEMS.map(item => compoundNamingToQuizItem(item, namingDir));
+      return getFilteredCompoundNamingItems(namingCategories).map(item =>
+        compoundNamingToQuizItem(item, namingDir)
+      );
     }
 
     case 'mixtures_separation':
@@ -367,7 +377,11 @@ export const getPoolIds = (cfg: QuizConfig, weakIdsList: (number | string)[] = [
     return ids;
   }
 
-  const items = getTopicStandardItems(cfg.quiz, cfg.dir || 'ad-formul');
+  const items = getTopicStandardItems(
+    cfg.quiz,
+    cfg.dir || 'ad-formul',
+    cfg.namingCategories
+  );
   return items.map(item => item.id);
 };
 
@@ -388,7 +402,7 @@ export const createQuestion = (
     }
   }
 
-  const items = getTopicStandardItems(quiz, dir);
+  const items = getTopicStandardItems(quiz, dir, cfg.namingCategories);
   const standard = items.find(x => x.id === id) || items[0];
 
   let rawData: ElementData | CompoundData | StandardQuizItem = standard;

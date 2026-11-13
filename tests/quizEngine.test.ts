@@ -5,8 +5,13 @@ import {
   isFormulaAsk,
   generateChoices,
   createQuestion,
-  getTopicStandardItems
+  getTopicStandardItems,
+  getPoolIds
 } from '../src/engine/quizEngine';
+import {
+  COVALENT_NAMING_CATEGORIES,
+  IONIC_NAMING_CATEGORIES
+} from '../src/data/compoundNaming';
 import { COMPOUNDS } from '../src/data/compounds';
 import { ALL_TOPICS } from '../src/data/topics';
 import { TopicId } from '../src/types/topics';
@@ -260,6 +265,45 @@ describe('quizEngine', () => {
       const expectedAnswer = q.dir === 'name-form' ? 'CaO' : 'Kalsiyum oksit';
       expect(q.standard.answer).toBe(expectedAnswer);
       expect(evaluateAnswer(q, expectedAnswer, null, true).full).toBe(true);
+    });
+
+    it('filters compound_naming pools by selected namingCategories (only ionic, only covalent, or combined)', () => {
+      const allIds = getPoolIds({
+        quiz: 'compound_naming',
+        kind: 'range',
+        total: 20,
+        retry: true,
+        mode: 'choice',
+        dir: 'form-name',
+        includeCompoundType: false
+      });
+      expect(allIds.length).toBe(69);
+
+      const ionicIds = getPoolIds({
+        quiz: 'compound_naming',
+        kind: 'range',
+        total: 20,
+        retry: true,
+        mode: 'choice',
+        dir: 'form-name',
+        includeCompoundType: false,
+        namingCategories: IONIC_NAMING_CATEGORIES
+      });
+      expect(ionicIds.length).toBe(42);
+      expect(ionicIds.some(id => String(id).startsWith('cov-'))).toBe(false);
+
+      const covalentIds = getPoolIds({
+        quiz: 'compound_naming',
+        kind: 'range',
+        total: 16,
+        retry: true,
+        mode: 'choice',
+        dir: 'form-name',
+        includeCompoundType: false,
+        namingCategories: COVALENT_NAMING_CATEGORIES
+      });
+      expect(covalentIds.length).toBe(16);
+      expect(covalentIds.every(id => String(id).startsWith('cov-'))).toBe(true);
     });
   });
 

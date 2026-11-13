@@ -8,6 +8,7 @@ export const KEYS = {
   answerMode: 'elementTesti.answerMode',                 // cevap şekli: 'type' | 'choice'
   showTable: 'elementTesti.showTable',                   // periyodik tablo görünürlüğü
   compoundIncludeType: 'elementTesti.compoundIncludeType', // bileşikte tür sorulsun mu? ('true' | 'false')
+  namingCategories: 'elementTesti.namingCategories',       // sistematik adlandırma kapsam seçimi
   theme: 'elementTesti.theme'                            // UI teması ('dark' | 'light')
 } as const;
 
