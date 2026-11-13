@@ -1,6 +1,7 @@
 import React from 'react';
 import { TopicDefinition, TopicId } from '../../types/topics';
 import { AnswerMode, ElementRangeKey } from '../../types/quiz';
+import { AnimationSceneId } from '../Animations/ChemistryAnimationsModal';
 import { SegmentGroup } from './SegmentGroup';
 import { KeyBadge } from '../Common/KeyBadge';
 
@@ -29,7 +30,28 @@ interface SetupInspectorProps {
   onOpenMnemonics: (initialCategory?: string) => void;
   onOpenCompoundBuilder: () => void;
   onOpenChemistryLab: (tab?: 'equilibrium' | 'electrochemistry') => void;
+  onOpenAnimations: (scene?: AnimationSceneId) => void;
 }
+
+const CONTEXTUAL_ANIMATION_BY_TOPIC: Partial<Record<TopicId, AnimationSceneId>> = {
+  electrochemistry_organic: 'galvanic_cell',
+  kinetics_equilibrium: 'equilibrium_collision',
+  gases_solutions: 'gas_laws',
+  interactions: 'hydration_polarity',
+  quantum_orbitals: 'bohr_orbital',
+  compound: 'acid_base_titration'
+};
+
+const CONTEXTUAL_CALLOUT_TEXT: Partial<Record<TopicId, string>> = {
+  compound_naming: 'İyon çaprazlama, EBOB sadeleştirme ve Latince önekleri deneyerek öğren:',
+  kinetics_equilibrium: 'Le Chatelier etki–tepki grafiklerini ve çarpışma animasyonunu canlı incele:',
+  electrochemistry_organic: 'Galvanik pilde anot/katot, elektron akışı ve Nernst etkilerini canlı izle:',
+  periodic_trends: 'Periyodik özelliklerin grup ve periyot boyunca değişimini canlı incele:',
+  gases_solutions: 'Gaz yasaları (P-V-T) ve Graham difüzyon yarışını animasyonla gözlemle:',
+  interactions: 'NaCl hidratasyonu, su dipolleri ve hidrojen bağı animasyonunu canlı izle:',
+  quantum_orbitals: 'Bohr enerji katmanlarını, foton emisyonunu ve s/p/d orbitallerini incele:',
+  compound: 'Asit–baz titrasyonu, eşdeğerlik noktası ve pH renk değişimini canlı izle:'
+};
 
 /** Sağ yapışkan denetçi paneli: seçili konunun tüm ayarları ve anlık başlatma CTA'ları */
 export const SetupInspector: React.FC<SetupInspectorProps> = ({
@@ -56,15 +78,14 @@ export const SetupInspector: React.FC<SetupInspectorProps> = ({
   onOpenTrendsExplorer,
   onOpenMnemonics,
   onOpenCompoundBuilder,
-  onOpenChemistryLab
+  onOpenChemistryLab,
+  onOpenAnimations
 }) => {
   const selectedTopicId = selectedTopic.id;
+  const contextualScene = CONTEXTUAL_ANIMATION_BY_TOPIC[selectedTopicId];
+  const contextualText = CONTEXTUAL_CALLOUT_TEXT[selectedTopicId];
 
-  const hasContextualLab =
-    selectedTopicId === 'compound_naming' ||
-    selectedTopicId === 'kinetics_equilibrium' ||
-    selectedTopicId === 'electrochemistry_organic' ||
-    selectedTopicId === 'periodic_trends';
+  const hasContextualLab = Boolean(contextualText);
 
   return (
     <aside className="card setup-inspector" aria-label="Seçili konu ayarları">
@@ -109,55 +130,57 @@ export const SetupInspector: React.FC<SetupInspectorProps> = ({
         </div>
       </div>
 
-      {/* Bağlamsal Stüdyo / Laboratuvar Kısayolu */}
+      {/* Bağlamsal Stüdyo / Laboratuvar / Animasyon Kısayolu */}
       {hasContextualLab && (
         <div className="contextual-lab-callout">
-          <div className="contextual-lab-text">
-            {selectedTopicId === 'compound_naming' &&
-              'İyon çaprazlama, EBOB sadeleştirme ve Latince önekleri deneyerek öğren:'}
-            {selectedTopicId === 'kinetics_equilibrium' &&
-              'Le Chatelier etki–tepki grafiklerini ve Kc değişimini canlı simüle et:'}
-            {selectedTopicId === 'electrochemistry_organic' &&
-              'Galvanik pilde anot/katot, E°pil ve Nernst etkilerini canlı incele:'}
-            {selectedTopicId === 'periodic_trends' &&
-              'Periyodik özelliklerin grup ve periyot boyunca değişimini canlı incele:'}
+          <div className="contextual-lab-text">{contextualText}</div>
+          <div className="contextual-lab-actions">
+            {selectedTopicId === 'compound_naming' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={onOpenCompoundBuilder}
+              >
+                🧪 İyon Çaprazlama & Adlandırma Atölyesini Aç
+              </button>
+            )}
+            {selectedTopicId === 'kinetics_equilibrium' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={() => onOpenChemistryLab('equilibrium')}
+              >
+                ⚖️ Le Chatelier Denge Simülatörünü Aç
+              </button>
+            )}
+            {selectedTopicId === 'electrochemistry_organic' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={() => onOpenChemistryLab('electrochemistry')}
+              >
+                🔋 Galvanik Pil & Elektroliz Laboratuvarını Aç
+              </button>
+            )}
+            {selectedTopicId === 'periodic_trends' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={onOpenTrendsExplorer}
+              >
+                🧭 Periyodik Değişim Pusulasını Aç
+              </button>
+            )}
+            {contextualScene && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={() => onOpenAnimations(contextualScene)}
+              >
+                🎬 Canlı Animasyonu İzle
+              </button>
+            )}
           </div>
-          {selectedTopicId === 'compound_naming' && (
-            <button
-              type="button"
-              className="btn secondary small"
-              onClick={onOpenCompoundBuilder}
-            >
-              🧪 İyon Çaprazlama & Adlandırma Atölyesini Aç
-            </button>
-          )}
-          {selectedTopicId === 'kinetics_equilibrium' && (
-            <button
-              type="button"
-              className="btn secondary small"
-              onClick={() => onOpenChemistryLab('equilibrium')}
-            >
-              ⚖️ Le Chatelier Denge Simülatörünü Aç
-            </button>
-          )}
-          {selectedTopicId === 'electrochemistry_organic' && (
-            <button
-              type="button"
-              className="btn secondary small"
-              onClick={() => onOpenChemistryLab('electrochemistry')}
-            >
-              🔋 Galvanik Pil & Elektroliz Laboratuvarını Aç
-            </button>
-          )}
-          {selectedTopicId === 'periodic_trends' && (
-            <button
-              type="button"
-              className="btn secondary small"
-              onClick={onOpenTrendsExplorer}
-            >
-              🧭 Periyodik Değişim Pusulasını Aç
-            </button>
-          )}
         </div>
       )}
 

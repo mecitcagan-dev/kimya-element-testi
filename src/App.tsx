@@ -11,6 +11,10 @@ import { PeriodicTrendsExplorer } from './components/PeriodicTable/PeriodicTrend
 import { MnemonicsModal } from './components/Mnemonics/MnemonicsModal';
 import { CompoundBuilderModal } from './components/Interactive/CompoundBuilderModal';
 import { ChemistryLabModal } from './components/Interactive/ChemistryLabModal';
+import {
+  AnimationSceneId,
+  ChemistryAnimationsModal
+} from './components/Animations/ChemistryAnimationsModal';
 import { ALL_TOPICS, TOPIC_MAP } from './data/topics';
 import { TopicId } from './types/topics';
 import { KEYS, readStored, writeStored } from './utils/storage';
@@ -31,6 +35,19 @@ export const App: React.FC = () => {
   const [isCompoundBuilderOpen, setIsCompoundBuilderOpen] = useState(false);
   const [isChemistryLabOpen, setIsChemistryLabOpen] = useState(false);
   const [chemistryLabTab, setChemistryLabTab] = useState<'equilibrium' | 'electrochemistry'>('equilibrium');
+  const [isAnimationsOpen, setIsAnimationsOpen] = useState(false);
+  const [animationScene, setAnimationScene] = useState<AnimationSceneId>('galvanic_cell');
+
+  const handleGoHome = () => {
+    session.goToSetup();
+    setReferenceTopicId(null);
+    setIsSetupPeriodicOpen(false);
+    setIsTrendsExplorerOpen(false);
+    setIsMnemonicsOpen(false);
+    setIsCompoundBuilderOpen(false);
+    setIsChemistryLabOpen(false);
+    setIsAnimationsOpen(false);
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -80,6 +97,7 @@ export const App: React.FC = () => {
       <AppHeader
         theme={theme}
         onToggleTheme={() => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))}
+        onGoHome={handleGoHome}
         totalTopics={ALL_TOPICS.length}
         totalWeakItems={totalWeakItems}
         isSetupView={session.status === 'setup'}
@@ -101,6 +119,10 @@ export const App: React.FC = () => {
             onOpenChemistryLab={(tab = 'equilibrium') => {
               setChemistryLabTab(tab);
               setIsChemistryLabOpen(true);
+            }}
+            onOpenAnimations={(scene = 'galvanic_cell') => {
+              setAnimationScene(scene);
+              setIsAnimationsOpen(true);
             }}
           />
 
@@ -246,6 +268,26 @@ export const App: React.FC = () => {
             total: 20,
             retry: true,
             mode: 'choice',
+            includeCompoundType: false
+          });
+        }}
+      />
+
+      {/* Canlı Kimya Animasyonları Stüdyosu Modalı */}
+      <ChemistryAnimationsModal
+        isOpen={isAnimationsOpen}
+        initialScene={animationScene}
+        onClose={() => setIsAnimationsOpen(false)}
+        onStartTopicQuiz={topicId => {
+          setIsAnimationsOpen(false);
+          const topicDef = TOPIC_MAP.get(topicId);
+          session.startQuiz({
+            quiz: topicId,
+            kind: 'range',
+            total: 20,
+            retry: true,
+            mode: 'choice',
+            dir: topicDef?.directions?.[0]?.id,
             includeCompoundType: false
           });
         }}

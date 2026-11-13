@@ -7,6 +7,7 @@ import { getWeakTopicIds } from '../../engine/statsEngine';
 import { StudioStrip } from './StudioStrip';
 import { TopicExplorer } from './TopicExplorer';
 import { SetupInspector } from './SetupInspector';
+import { AnimationSceneId } from '../Animations/ChemistryAnimationsModal';
 
 interface SetupScreenProps {
   onStartQuiz: (cfg: QuizConfig) => void;
@@ -16,9 +17,10 @@ interface SetupScreenProps {
   onOpenMnemonics: (initialCategory?: string) => void;
   onOpenCompoundBuilder: () => void;
   onOpenChemistryLab: (tab?: 'equilibrium' | 'electrochemistry') => void;
+  onOpenAnimations: (scene?: AnimationSceneId) => void;
 }
 
-/** Kurulum ekranı: Üstte 4'lü stüdyo şeridi, altta 2 sütunlu Master-Detail çalışma alanı */
+/** Kurulum ekranı: Üstte 5'li stüdyo şeridi, altta 2 sütunlu Master-Detail çalışma alanı */
 export const SetupScreen: React.FC<SetupScreenProps> = ({
   onStartQuiz,
   onOpenPeriodicTable,
@@ -26,7 +28,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
   onOpenTrendsExplorer,
   onOpenMnemonics,
   onOpenCompoundBuilder,
-  onOpenChemistryLab
+  onOpenChemistryLab,
+  onOpenAnimations
 }) => {
   const [examCat, setExamCat] = useState<ExamCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -151,6 +154,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
         onOpenMnemonics={onOpenMnemonics}
         onOpenCompoundBuilder={onOpenCompoundBuilder}
         onOpenChemistryLab={onOpenChemistryLab}
+        onOpenAnimations={onOpenAnimations}
       />
 
       <div className="setup-workspace">
@@ -192,6 +196,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
           onOpenMnemonics={onOpenMnemonics}
           onOpenCompoundBuilder={onOpenCompoundBuilder}
           onOpenChemistryLab={onOpenChemistryLab}
+          onOpenAnimations={onOpenAnimations}
         />
       </div>
     </section>
