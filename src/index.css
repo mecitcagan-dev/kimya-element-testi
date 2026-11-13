@@ -120,6 +120,19 @@ kbd.kb-key { margin-left: 4px; white-space: nowrap; }
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+/* ---------- İnteraktif Stüdyo & Hızlı Araçlar Bandı ---------- */
+.studio-grid {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .studio-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Konu Seçim Izgarası (Topic Grid) ---------- */
 .topic-grid {
   display: grid;

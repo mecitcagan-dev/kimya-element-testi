@@ -1,8 +1,38 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { App } from '../src/App';
 
 describe('App Flow & Multi-Topic System', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('displays 24 topics total (8 TYT+AYT, 8 TYT, 8 AYT) and filters by exam category', () => {
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: /Tüm Konular \(24\)/i })).toBeDefined();
+    const tytAytTab = screen.getByRole('button', { name: /TYT \+ AYT Ortak \(8\)/i });
+    const tytTab = screen.getByRole('button', { name: /TYT Kimya \(8\)/i });
+    const aytTab = screen.getByRole('button', { name: /AYT Kimya \(8\)/i });
+
+    expect(tytAytTab).toBeDefined();
+    expect(tytTab).toBeDefined();
+    expect(aytTab).toBeDefined();
+
+    fireEvent.click(tytAytTab);
+    expect(screen.getByText('Sistematik Bileşik Adlandırma (IUPAC)')).toBeDefined();
+    expect(screen.getByText('Gazlar, Çözeltiler & Asit-Baz Dengesi')).toBeDefined();
+
+    fireEvent.click(tytTab);
+    expect(screen.getByText('Karışımlar & Ayırma Yöntemleri')).toBeDefined();
+    expect(screen.getByText('Polimerler & Kimya Her Yerde')).toBeDefined();
+    expect(screen.getByText('Çevre Kimyası & Su Arıtımı')).toBeDefined();
+
+    fireEvent.click(aytTab);
+    expect(screen.getByText('Modern Atom Teorisi & Orbitaller')).toBeDefined();
+    expect(screen.getByText('Hız, Enerji & Kimyasal Denge')).toBeDefined();
+    expect(screen.getByText('Elektrokimya & Organik Derinleşme')).toBeDefined();
+  });
   it('allows user to filter by exam category, select Yaygın Bileşikler, and test with Türsüz and Seçenekli mode', () => {
     render(<App />);
 
@@ -121,7 +151,7 @@ describe('App Flow & Multi-Topic System', () => {
     fireEvent.change(searchInput, { target: { value: 'Zengin' } });
 
     // "Tümü" sekmesine tıkla veya filtreyi doğrula
-    const allTab = screen.getByRole('button', { name: /Tümü/i });
+    const allTab = screen.getByRole('button', { name: /✨ Tümü/i });
     fireEvent.click(allTab);
     expect(screen.getByText(/Zengin Pabuçlu Beyaz Karısına Alttan Sandık/i)).toBeDefined();
 
@@ -156,7 +186,7 @@ describe('App Flow & Multi-Topic System', () => {
     fireEvent.click(openMnemonicsBtn);
 
     // "Tümü" sekmesine geç
-    const allTab = screen.getByRole('button', { name: /Tümü/i });
+    const allTab = screen.getByRole('button', { name: /✨ Tümü/i });
     fireEvent.click(allTab);
 
     // Arama kutusu
@@ -177,5 +207,116 @@ describe('App Flow & Multi-Topic System', () => {
     // Modalı kapat
     const closeBtns = screen.getAllByRole('button', { name: 'Kapat' });
     fireEvent.click(closeBtns[0]);
+  });
+
+  it('opens CompoundBuilderModal from SetupScreen, tests ionic cross-over, covalent tab, and starts naming quiz', () => {
+    render(<App />);
+
+    // Stüdyo bandından İyon Çaprazlama & Adlandırma Atölyesi'ni aç
+    const openBuilderBtn = screen.getByRole('button', { name: /Atölyeyi Aç 🧪/i });
+    fireEvent.click(openBuilderBtn);
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText(/İyon Çaprazlama & Bileşik Adlandırma Atölyesi/i)).toBeDefined();
+
+    // 1. Fe3+ + SO4^2- -> Fe₂(SO₄)₃ / Demir(III) sülfat
+    fireEvent.click(within(dialog).getByRole('button', { name: /Fe³⁺\s*Demir\(III\)/i }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /SO₄²⁻\s*sülfat/i }));
+    expect(within(dialog).getAllByText('Fe₂(SO₄)₃').length).toBeGreaterThan(0);
+    expect(within(dialog).getByText('Demir(III) sülfat')).toBeDefined();
+
+    // 2. Ca2+ + O2- -> CaO (EBOB sadeleştirme = 2) / Kalsiyum oksit
+    fireEvent.click(within(dialog).getByRole('button', { name: /Ca²⁺ \+ O²⁻/i }));
+    expect(within(dialog).getByText(/EBOB\(2, 2\) = 2/i)).toBeDefined();
+    expect(within(dialog).getAllByText('CaO').length).toBeGreaterThan(0);
+    expect(within(dialog).getByText('Kalsiyum oksit')).toBeDefined();
+
+    // 3. Kovalent sekmesine geç ve OF₂ molekülünü seç
+    const covalentTab = within(dialog).getByRole('tab', { name: /Kovalent Bileşikler/i });
+    fireEvent.click(covalentTab);
+    expect(within(dialog).getByText(/Kovalent Adlandırma Altın Kuralı/i)).toBeDefined();
+    expect(within(dialog).getByText('Diazot pentaoksit')).toBeDefined();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'OF₂' }));
+    expect(within(dialog).getByText('Oksijen diflorür')).toBeDefined();
+
+    // 4. Bileşik Adlandırma Testini Başlat CTA'sına tıkla
+    const startNamingBtn = within(dialog).getByRole('button', {
+      name: /Bileşik Adlandırma Testini Başlat/i
+    });
+    fireEvent.click(startNamingBtn);
+
+    // Modal kapanır ve Sistematik Bileşik Adlandırma testi başlar
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText(/Sistematik Bileşik Adlandırma \(IUPAC\)/)).toBeDefined();
+    const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
+    expect(choicesGroup.querySelectorAll('button.opt').length).toBe(4);
+  });
+
+  it('opens ChemistryLabModal from SetupScreen, tests Le Chatelier & Galvanic Cell tabs, and launches both quizzes', () => {
+    render(<App />);
+
+    // 1. Stüdyo bandından Denge & Pil Laboratuvarı'nı aç
+    const openLabBtn = screen.getByRole('button', { name: /Laboratuvarı Aç ⚗️/i });
+    fireEvent.click(openLabBtn);
+
+    const dialog = screen.getByRole('dialog', {
+      name: /AYT İnteraktif Denge ve Pil Laboratuvarı/i
+    });
+    expect(dialog).toBeDefined();
+
+    // Varsayılan Le Chatelier sekmesi: Katalizör -> Denge Bozulmaz
+    fireEvent.click(within(dialog).getByRole('button', { name: /Katalizör Ekle/i }));
+    expect(within(dialog).getByText(/Denge Bozulmaz/i)).toBeDefined();
+    expect(within(dialog).getByText(/DEĞİŞMEZ \(Sadece sıcaklık değiştirir!\)/i)).toBeDefined();
+
+    // Hacmi Küçült -> Haber tepkimesinde ürünler lehine
+    fireEvent.click(within(dialog).getByRole('button', { name: /Hacmi Küçült/i }));
+    expect(within(dialog).getByText(/Ürünler Lehine \(4 mol → 2 mol gaz\)/i)).toBeDefined();
+
+    // Hız & Denge Testine Başla CTA
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /Hız & Denge Testine Başla/i })
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText(/Hız, Enerji & Kimyasal Denge/)).toBeDefined();
+
+    // Testi bitirip kurulum ekranına dön
+    fireEvent.click(screen.getByRole('button', { name: /Bitir/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Ayarlara dön/i }));
+
+    // 2. Elektrokimya konusu seçilince çıkan bağlamsal CTA ile Pil Laboratuvarı'nı doğrudan Pil sekmesinde aç
+    fireEvent.click(screen.getByText('Elektrokimya & Organik Derinleşme'));
+    const contextualElectroBtn = screen.getByRole('button', {
+      name: /Galvanik Pil & Elektroliz Laboratuvarını Aç/i
+    });
+    fireEvent.click(contextualElectroBtn);
+
+    const electroDialog = screen.getByRole('dialog', {
+      name: /AYT İnteraktif Denge ve Pil Laboratuvarı/i
+    });
+    expect(within(electroDialog).getAllByText('1.10 V').length).toBeGreaterThan(0);
+
+    // Denge sekmesine geçip tekrar Galvanik Pil sekmesine dönerek sekme geçişini doğrula
+    fireEvent.click(within(electroDialog).getByRole('button', { name: /Le Chatelier Denge Simülatörü/i }));
+    expect(within(electroDialog).getByText(/Klasik ÖSYM Denge Tepkimesi Seç/i)).toBeDefined();
+    fireEvent.click(within(electroDialog).getByRole('button', { name: /Galvanik Pil & Elektroliz Canlandırıcısı/i }));
+
+    // Anot kabına su ekle -> Epil ARTAR
+    fireEvent.click(within(electroDialog).getByRole('button', { name: /Anot Kabına Su Ekle/i }));
+    expect(within(electroDialog).getAllByText(/Epil ARTAR/i).length).toBeGreaterThan(0);
+
+    // Tuz köprüsünü çıkar -> Pil Durdu
+    fireEvent.click(within(electroDialog).getByRole('button', { name: /Tuz Köprüsünü Çıkar/i }));
+    expect(within(electroDialog).getByText(/Pil Durdu \(Epil = 0\.00 V\)/i)).toBeDefined();
+
+    // Elektrokimya Testine Başla CTA
+    fireEvent.click(
+      within(electroDialog).getByRole('button', { name: /Elektrokimya Testine Başla/i })
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText(/Elektrokimya & Organik Derinleşme/)).toBeDefined();
+    const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
+    expect(choicesGroup.querySelectorAll('button.opt').length).toBe(4);
   });
 });

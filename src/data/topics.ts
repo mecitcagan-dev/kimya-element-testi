@@ -2,6 +2,7 @@ import { TopicDefinition, TopicId } from '../types/topics';
 import { ELEMENT_CATEGORIES } from './elements';
 import { COMPOUND_CATEGORIES } from './compounds';
 import { ION_CATEGORIES } from './polyatomicIons';
+import { COMPOUND_NAMING_CATEGORIES } from './compoundNaming';
 
 export const ALL_TOPICS: TopicDefinition[] = [
   // ========== 1. TYT + AYT (Ortak Temel Konular) ==========
@@ -82,6 +83,33 @@ export const ALL_TOPICS: TopicDefinition[] = [
     description: 'Cu, Ag, Zn, Fe metallerinin asit ve bazlarla tepkimelerini; NO2, NO, SO2, H2 veya CO2 gazı çıkış kurallarını test et.',
     defaultCount: 16
   },
+  {
+    id: 'compound_naming',
+    title: 'Sistematik Bileşik Adlandırma (IUPAC)',
+    examCategory: 'tyt_ayt',
+    icon: '🏷️',
+    tag: 'TYT + AYT',
+    badgeColor: '#e5484d',
+    description: 'Sabit ve değişken değerlikli (Romen rakamlı) iyonik bileşikleri, çok atomlu kökleri ve Latince önekli kovalent bileşikleri test et.',
+    defaultCount: 40,
+    hasTypeToggle: false,
+    directions: [
+      { id: 'form-name', label: 'Formül → Sistematik Ad', keyBadge: 'H' },
+      { id: 'name-form', label: 'Sistematik Ad → Formül', keyBadge: 'J' },
+      { id: 'karisik', label: 'Karışık', keyBadge: 'K' }
+    ],
+    categories: COMPOUND_NAMING_CATEGORIES
+  },
+  {
+    id: 'gases_solutions',
+    title: 'Gazlar, Çözeltiler & Asit-Baz Dengesi',
+    examCategory: 'tyt_ayt',
+    icon: '🎈',
+    tag: 'TYT + AYT',
+    badgeColor: '#e5484d',
+    description: 'Gaz yasaları (Kelvin tuzağı), Graham difüzyon, su üstünde gaz, koligatif özellikler, tuz hidrolizi ve tampon çözeltileri test et.',
+    defaultCount: 25
+  },
 
   // ========== 2. TYT (Temel Yeterlilik Konuları) ==========
   {
@@ -133,6 +161,36 @@ export const ALL_TOPICS: TopicDefinition[] = [
     badgeColor: '#30a46c',
     description: 'Hidrojen bağı, dipol-dipol, iyon-dipol ve London kuvvetleri eşleştirmelerini, çözünme ve kaynama noktası mantığını test et.',
     defaultCount: 16
+  },
+  {
+    id: 'mixtures_separation',
+    title: 'Karışımlar & Ayırma Yöntemleri',
+    examCategory: 'tyt',
+    icon: '⚗️',
+    tag: 'TYT',
+    badgeColor: '#30a46c',
+    description: 'Ayrımsal damıtma, basit damıtma, ayırma hunisi, flotasyon, özütleme, diyaliz, kristallendirme ve kolloid tuzaklarını test et.',
+    defaultCount: 24
+  },
+  {
+    id: 'everyday_chemistry',
+    title: 'Polimerler & Kimya Her Yerde',
+    examCategory: 'tyt',
+    icon: '🧴',
+    tag: 'TYT',
+    badgeColor: '#30a46c',
+    description: 'PE, PET, PVC, Teflon, Kevlar polimerleri; sabun-deterjan farkı, hijyen tepkimeleri, gıda katkıları ve ilaç formlarını test et.',
+    defaultCount: 26
+  },
+  {
+    id: 'environmental_chemistry',
+    title: 'Çevre Kimyası & Su Arıtımı',
+    examCategory: 'tyt',
+    icon: '🌍',
+    tag: 'TYT',
+    badgeColor: '#30a46c',
+    description: 'Sera gazları, ozon tabakası (CFC), asit yağmurları vs nötr oksitler (CO, NO, N2O), su sertliği ve toprak/su kirleticilerini test et.',
+    defaultCount: 22
   },
 
   // ========== 3. AYT (Alan Yeterlilik Konuları) ==========
@@ -190,6 +248,36 @@ export const ALL_TOPICS: TopicDefinition[] = [
     badgeColor: '#7950f2',
     description: 'Tollens (gümüş aynası), Fehling (Cu2O çökeleği), Bromlu su rengi giderme, 1°/2°/3° alkol yükseltgenmesi ve tautomeriyi test et.',
     defaultCount: 14
+  },
+  {
+    id: 'quantum_orbitals',
+    title: 'Modern Atom Teorisi & Orbitaller',
+    examCategory: 'ayt',
+    icon: '🌀',
+    tag: 'AYT',
+    badgeColor: '#7950f2',
+    description: 'Kuantum sayıları (n, l, ml, ms), Aufbau/Pauli/Hund, Cr(24)/Cu(29) küresel simetri istisnaları, iyon dizilimi ve manyetizmayı test et.',
+    defaultCount: 23
+  },
+  {
+    id: 'kinetics_equilibrium',
+    title: 'Hız, Enerji & Kimyasal Denge',
+    examCategory: 'ayt',
+    icon: '⚖️',
+    tag: 'AYT',
+    badgeColor: '#7950f2',
+    description: 'Entalpi, aktifleşme enerjisi, hız sabiti (TSK), katalizör etkisi, Kc/Kp dönüşümü, Le Chatelier ilkesi ve Kçç ortak iyon etkisini test et.',
+    defaultCount: 24
+  },
+  {
+    id: 'electrochemistry_organic',
+    title: 'Elektrokimya & Organik Derinleşme',
+    examCategory: 'ayt',
+    icon: '🔋',
+    tag: 'AYT',
+    badgeColor: '#7950f2',
+    description: 'Galvanik piller (KİMYA), Nernst, derişim pilleri, elektroliz/Faraday, IUPAC adlandırma, hibritleşme, sigma-pi ve izomerliği test et.',
+    defaultCount: 30
   }
 ];
 

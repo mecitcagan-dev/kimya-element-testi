@@ -13,6 +13,8 @@ interface SetupScreenProps {
   onOpenTopicReference: (topicId: TopicId) => void;
   onOpenTrendsExplorer: () => void;
   onOpenMnemonics: (initialCategory?: string) => void;
+  onOpenCompoundBuilder: () => void;
+  onOpenChemistryLab: (tab?: 'equilibrium' | 'electrochemistry') => void;
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({
@@ -20,7 +22,9 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
   onOpenPeriodicTable,
   onOpenTopicReference,
   onOpenTrendsExplorer,
-  onOpenMnemonics
+  onOpenMnemonics,
+  onOpenCompoundBuilder,
+  onOpenChemistryLab
 }) => {
   // Sınav kategorisi filtresi: 'all' | 'tyt_ayt' | 'tyt' | 'ayt'
   const [examCat, setExamCat] = useState<ExamCategory>('all');
@@ -91,6 +95,11 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
     writeStored(KEYS.compoundIncludeType, String(include));
   };
 
+  const supportsTypeQuestion =
+    selectedTopicId === 'element' ||
+    selectedTopicId === 'polyatomic' ||
+    Boolean(selectedTopic.hasTypeToggle);
+
   const handleStart = () => {
     const totalCount = questionCount === 'inf' ? Infinity : questionCount;
     onStartQuiz({
@@ -101,7 +110,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
       retry: retryWrong,
       mode: answerMode,
       dir: direction,
-      includeCompoundType
+      includeCompoundType: supportsTypeQuestion ? includeCompoundType : false
     });
   };
 
@@ -116,7 +125,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
       retry: retryWrong,
       mode: answerMode,
       dir: direction,
-      includeCompoundType
+      includeCompoundType: supportsTypeQuestion ? includeCompoundType : false
     });
   };
 
@@ -145,15 +154,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
         </p>
       </header>
 
-      {/* Öğrenci Kılavuzları & Hızlı Araçlar Bandı */}
-      <div
-        style={{
-          margin: '18px 0',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '12px'
-        }}
-      >
+      {/* Öğrenci Kılavuzları & İnteraktif Stüdyo Bandı (4 Kartlı Geniş Düzen) */}
+      <div className="studio-grid">
         {/* 1. Periyodik Tablo Değişim Pusulası */}
         <div
           style={{
@@ -219,6 +221,74 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
             style={{ borderColor: '#40c05766', color: '#69db7c', flexShrink: 0 }}
           >
             Rehberi İncele 💡
+          </button>
+        </div>
+
+        {/* 3. İyon Çaprazlama & Adlandırma Atölyesi */}
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--card-2)',
+            border: '1px solid var(--border-2)',
+            borderRadius: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '26px' }}>🧪</span>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#74c0fc' }}>
+                İyon Çaprazlama & Adlandırma
+              </strong>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+                Katyon–anyon çaprazlama, Romen rakamları ve Latince önekler
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn secondary small"
+            onClick={onOpenCompoundBuilder}
+            style={{ borderColor: '#4dabf766', color: '#74c0fc', flexShrink: 0 }}
+          >
+            Atölyeyi Aç 🧪
+          </button>
+        </div>
+
+        {/* 4. AYT Denge & Pil Laboratuvarı */}
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--card-2)',
+            border: '1px solid var(--border-2)',
+            borderRadius: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '26px' }}>⚖️</span>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#b197fc' }}>
+                Denge & Pil Laboratuvarı
+              </strong>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+                Le Chatelier grafikleri ve canlı Galvanik pil simülatörü
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn secondary small"
+            onClick={() => onOpenChemistryLab('equilibrium')}
+            style={{ borderColor: '#7950f266', color: '#b197fc', flexShrink: 0 }}
+          >
+            Laboratuvarı Aç ⚗️
           </button>
         </div>
       </div>
@@ -336,6 +406,77 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Seçili Konuya Özel İnteraktif Stüdyo CTA */}
+        {(selectedTopicId === 'compound_naming' ||
+          selectedTopicId === 'kinetics_equilibrium' ||
+          selectedTopicId === 'electrochemistry_organic' ||
+          selectedTopicId === 'periodic_trends') && (
+          <div
+            style={{
+              padding: '12px 16px',
+              backgroundColor: 'var(--card-2)',
+              border: '1px solid var(--border-2)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
+              {selectedTopicId === 'compound_naming' &&
+                'İyon çaprazlama, EBOB sadeleştirme ve Latince önekleri deneyerek öğren:'}
+              {selectedTopicId === 'kinetics_equilibrium' &&
+                'Le Chatelier etki–tepki grafiklerini ve Kc değişimini canlı simüle et:'}
+              {selectedTopicId === 'electrochemistry_organic' &&
+                'Galvanik pilde anot/katot, E°pil ve Nernst etkilerini canlı incele:'}
+              {selectedTopicId === 'periodic_trends' &&
+                'Periyodik özelliklerin grup ve periyot boyunca değişimini canlı incele:'}
+            </div>
+            {selectedTopicId === 'compound_naming' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                style={{ borderColor: '#4dabf766', color: '#74c0fc' }}
+                onClick={onOpenCompoundBuilder}
+              >
+                🧪 İyon Çaprazlama & Adlandırma Atölyesini Aç
+              </button>
+            )}
+            {selectedTopicId === 'kinetics_equilibrium' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                style={{ borderColor: '#7950f266', color: '#b197fc' }}
+                onClick={() => onOpenChemistryLab('equilibrium')}
+              >
+                ⚖️ Le Chatelier Denge Simülatörünü Aç
+              </button>
+            )}
+            {selectedTopicId === 'electrochemistry_organic' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                style={{ borderColor: '#f5a52466', color: '#ffd43b' }}
+                onClick={() => onOpenChemistryLab('electrochemistry')}
+              >
+                🔋 Galvanik Pil & Elektroliz Laboratuvarını Aç
+              </button>
+            )}
+            {selectedTopicId === 'periodic_trends' && (
+              <button
+                type="button"
+                className="btn secondary small"
+                style={{ borderColor: '#ffd43b66', color: '#ffd43b' }}
+                onClick={onOpenTrendsExplorer}
+              >
+                🧭 Periyodik Değişim Pusulasını Aç
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Element Aralık Seçimi */}
         {selectedTopicId === 'element' && (

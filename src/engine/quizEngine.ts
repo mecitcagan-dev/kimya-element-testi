@@ -1,5 +1,7 @@
 import { TopicId, StandardQuizItem } from '../types/topics';
+import { ElementData, CompoundData } from '../types/chemistry';
 import { QuizConfig, QuestionItem, AnswerResult } from '../types/quiz';
+import { TOPIC_MAP } from '../data/topics';
 import { ELEMENTS, ELEMENT_RANGES, ELEMENT_BY_Z } from '../data/elements';
 import { COMPOUNDS, COMPOUND_BY_Z } from '../data/compounds';
 import { POLYATOMIC_IONS, ionToQuizItem } from '../data/polyatomicIons';
@@ -16,11 +18,20 @@ import { VSEPR_MOLECULES } from '../data/vsepr';
 import { METAL_REACTIONS } from '../data/metalReactions';
 import { ORGANIC_TESTS } from '../data/organicTests';
 import { PERIODIC_TRENDS } from '../data/periodicTrends';
-import { foldKey, nameMatches, formulaMatches, squeeze } from '../utils/text';
+import { COMPOUND_NAMING_ITEMS, compoundNamingToQuizItem } from '../data/compoundNaming';
+import { MIXTURES_SEPARATION, mixtureSeparationToQuizItem } from '../data/mixturesSeparation';
+import { EVERYDAY_CHEMISTRY, everydayChemistryToQuizItem } from '../data/everydayChemistry';
+import { ENVIRONMENTAL_CHEMISTRY, environmentalChemistryToQuizItem } from '../data/environmentalChemistry';
+import { QUANTUM_ORBITALS, quantumOrbitalToQuizItem } from '../data/quantumOrbitals';
+import { GASES_AND_SOLUTIONS, gasesSolutionsToQuizItem } from '../data/gasesAndSolutions';
+import { KINETICS_EQUILIBRIUM, kineticsEquilibriumToQuizItem } from '../data/kineticsEquilibrium';
+import { ELECTROCHEMISTRY_AND_ORGANIC, electrochemistryOrganicToQuizItem } from '../data/electrochemistryAndOrganic';
+import { foldKey, formulaKey, nameMatches, formulaMatches, squeeze } from '../utils/text';
 import { shuffle } from '../utils/random';
 
 export const isFormulaAsk = (q: QuestionItem): boolean =>
-  q.quiz === 'compound' && q.dir === 'ad-formul';
+  (q.quiz === 'compound' && q.dir === 'ad-formul') ||
+  (q.quiz === 'compound_naming' && q.dir === 'name-form');
 
 export function getTopicStandardItems(topicId: TopicId, dir = 'ad-formul'): StandardQuizItem[] {
   switch (topicId) {
@@ -189,6 +200,32 @@ export function getTopicStandardItems(topicId: TopicId, dir = 'ad-formul'): Stan
         hint: p.examHighlight
       }));
 
+    case 'compound_naming': {
+      const namingDir = dir === 'name-form' ? 'name-form' : 'form-name';
+      return COMPOUND_NAMING_ITEMS.map(item => compoundNamingToQuizItem(item, namingDir));
+    }
+
+    case 'mixtures_separation':
+      return MIXTURES_SEPARATION.map(mixtureSeparationToQuizItem);
+
+    case 'everyday_chemistry':
+      return EVERYDAY_CHEMISTRY.map(everydayChemistryToQuizItem);
+
+    case 'environmental_chemistry':
+      return ENVIRONMENTAL_CHEMISTRY.map(environmentalChemistryToQuizItem);
+
+    case 'quantum_orbitals':
+      return QUANTUM_ORBITALS.map(quantumOrbitalToQuizItem);
+
+    case 'gases_solutions':
+      return GASES_AND_SOLUTIONS.map(gasesSolutionsToQuizItem);
+
+    case 'kinetics_equilibrium':
+      return KINETICS_EQUILIBRIUM.map(kineticsEquilibriumToQuizItem);
+
+    case 'electrochemistry_organic':
+      return ELECTROCHEMISTRY_AND_ORGANIC.map(electrochemistryOrganicToQuizItem);
+
     default:
       return [];
   }
@@ -220,6 +257,14 @@ export const isNameCorrect = (q: QuestionItem, typed: string, isChoiceMode: bool
     const c = COMPOUND_BY_Z[Number(q.id)];
     if (c) {
       return isFormulaAsk(q) ? formulaMatches(clean, c) : nameMatches(clean, c);
+    }
+  }
+
+  // Sistematik Bileşik Adlandırma (formül yazımında alt simge ve parantez esnekliği)
+  if (q.quiz === 'compound_naming' && isFormulaAsk(q)) {
+    const typedFormula = formulaKey(clean);
+    if (typedFormula.length > 0 && typedFormula === formulaKey(q.standard.answer)) {
+      return true;
     }
   }
 
@@ -336,20 +381,30 @@ export const createQuestion = (
   let dir = cfg.dir || 'ad-formul';
   if (dir === 'karisik') {
     if (quiz === 'compound') dir = Math.random() < 0.5 ? 'ad-formul' : 'formul-ad';
-    else if (quiz === 'polyatomic') dir = Math.random() < 0.5 ? 'form-name' : 'name-form';
-    else if (quiz === 'organic_common') dir = Math.random() < 0.5 ? 'spec-form' : 'form-spec';
+    else if (quiz === 'polyatomic' || quiz === 'compound_naming') {
+      dir = Math.random() < 0.5 ? 'form-name' : 'name-form';
+    } else if (quiz === 'organic_common') {
+      dir = Math.random() < 0.5 ? 'spec-form' : 'form-spec';
+    }
   }
 
   const items = getTopicStandardItems(quiz, dir);
   const standard = items.find(x => x.id === id) || items[0];
 
-  let rawData: any = standard;
+  let rawData: ElementData | CompoundData | StandardQuizItem = standard;
   if (quiz === 'element') rawData = ELEMENT_BY_Z[Number(id)];
   else if (quiz === 'compound') rawData = COMPOUND_BY_Z[Number(id)];
 
-  const includeType = quiz === 'compound'
-    ? cfg.includeCompoundType
-    : Boolean(standard.category && cfg.includeCompoundType);
+  const topicDef = TOPIC_MAP.get(quiz);
+  const supportsCategoryQuestion =
+    quiz === 'element' ||
+    quiz === 'compound' ||
+    quiz === 'polyatomic' ||
+    Boolean(topicDef?.hasTypeToggle);
+  const includeType =
+    quiz === 'compound'
+      ? cfg.includeCompoundType
+      : supportsCategoryQuestion && Boolean(standard.category && cfg.includeCompoundType);
 
   return {
     id,

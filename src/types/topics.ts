@@ -16,7 +16,15 @@ export type TopicId =
   | 'vsepr'
   | 'metal_reactions'
   | 'organic_tests'
-  | 'periodic_trends';
+  | 'periodic_trends'
+  | 'compound_naming'
+  | 'mixtures_separation'
+  | 'everyday_chemistry'
+  | 'environmental_chemistry'
+  | 'quantum_orbitals'
+  | 'gases_solutions'
+  | 'kinetics_equilibrium'
+  | 'electrochemistry_organic';
 
 export interface TopicDirection {
   id: string;

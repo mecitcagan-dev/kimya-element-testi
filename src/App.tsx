@@ -8,6 +8,8 @@ import { TopicReferenceModal } from './components/Reference/TopicReferenceModal'
 import { PeriodicTableView } from './components/PeriodicTable/PeriodicTableView';
 import { PeriodicTrendsExplorer } from './components/PeriodicTable/PeriodicTrendsExplorer';
 import { MnemonicsModal } from './components/Mnemonics/MnemonicsModal';
+import { CompoundBuilderModal } from './components/Interactive/CompoundBuilderModal';
+import { ChemistryLabModal } from './components/Interactive/ChemistryLabModal';
 import { TOPIC_MAP } from './data/topics';
 import { TopicId } from './types/topics';
 
@@ -18,6 +20,9 @@ export const App: React.FC = () => {
   const [isTrendsExplorerOpen, setIsTrendsExplorerOpen] = useState(false);
   const [isMnemonicsOpen, setIsMnemonicsOpen] = useState(false);
   const [mnemonicsCategory, setMnemonicsCategory] = useState<string>('compound_rules');
+  const [isCompoundBuilderOpen, setIsCompoundBuilderOpen] = useState(false);
+  const [isChemistryLabOpen, setIsChemistryLabOpen] = useState(false);
+  const [chemistryLabTab, setChemistryLabTab] = useState<'equilibrium' | 'electrochemistry'>('equilibrium');
 
   // Klavye olayları bağlama
   useKeyboard({
@@ -63,6 +68,11 @@ export const App: React.FC = () => {
             onOpenMnemonics={(cat) => {
               if (cat) setMnemonicsCategory(cat);
               setIsMnemonicsOpen(true);
+            }}
+            onOpenCompoundBuilder={() => setIsCompoundBuilderOpen(true)}
+            onOpenChemistryLab={(tab = 'equilibrium') => {
+              setChemistryLabTab(tab);
+              setIsChemistryLabOpen(true);
             }}
           />
 
@@ -175,6 +185,53 @@ export const App: React.FC = () => {
         isOpen={isMnemonicsOpen}
         initialCategory={mnemonicsCategory}
         onClose={() => setIsMnemonicsOpen(false)}
+      />
+
+      {/* İyon Çaprazlama & Bileşik Adlandırma Atölyesi Modalı */}
+      <CompoundBuilderModal
+        isOpen={isCompoundBuilderOpen}
+        onClose={() => setIsCompoundBuilderOpen(false)}
+        onStartNamingQuiz={() => {
+          setIsCompoundBuilderOpen(false);
+          session.startQuiz({
+            quiz: 'compound_naming',
+            kind: 'range',
+            total: 20,
+            retry: true,
+            mode: 'choice',
+            dir: 'form-name',
+            includeCompoundType: false
+          });
+        }}
+      />
+
+      {/* AYT İnteraktif Denge & Pil Laboratuvarı Modalı */}
+      <ChemistryLabModal
+        isOpen={isChemistryLabOpen}
+        initialTab={chemistryLabTab}
+        onClose={() => setIsChemistryLabOpen(false)}
+        onStartEquilibriumQuiz={() => {
+          setIsChemistryLabOpen(false);
+          session.startQuiz({
+            quiz: 'kinetics_equilibrium',
+            kind: 'range',
+            total: 20,
+            retry: true,
+            mode: 'choice',
+            includeCompoundType: false
+          });
+        }}
+        onStartElectroQuiz={() => {
+          setIsChemistryLabOpen(false);
+          session.startQuiz({
+            quiz: 'electrochemistry_organic',
+            kind: 'range',
+            total: 20,
+            retry: true,
+            mode: 'choice',
+            includeCompoundType: false
+          });
+        }}
       />
     </main>
   );
