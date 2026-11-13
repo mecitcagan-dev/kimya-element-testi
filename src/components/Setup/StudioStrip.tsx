@@ -78,7 +78,11 @@ export const StudioStrip: React.FC<StudioStripProps> = ({
   return (
     <section className="studio-strip" aria-label="İnteraktif kimya stüdyoları">
       {cards.map(card => (
-        <div key={card.id} className={`studio-card ${card.tone}`}>
+        <div
+          key={card.id}
+          className={`studio-card ${card.tone}`}
+          onClick={card.onClick}
+        >
           <div className="studio-card-head">
             <span className="studio-icon" aria-hidden="true">
               <img src={card.iconSrc} alt="" className="studio-icon-img" />
@@ -91,7 +95,10 @@ export const StudioStrip: React.FC<StudioStripProps> = ({
           <button
             type="button"
             className="btn secondary small studio-btn"
-            onClick={card.onClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              card.onClick();
+            }}
           >
             <span>{card.buttonLabel}</span>
           </button>

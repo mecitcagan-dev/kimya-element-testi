@@ -21,6 +21,18 @@ export const MnemonicsModal: React.FC<MnemonicsModalProps> = ({
     }
   }, [isOpen, initialCategory]);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const categories = [
@@ -134,7 +146,7 @@ export const MnemonicsModal: React.FC<MnemonicsModalProps> = ({
         <div style={{ marginTop: '16px', marginBottom: '20px' }}>
           <input
             type="text"
-            className="text-input"
+            className="search-input"
             placeholder="Kodlama, formül veya kural ara (örn: deden, asit, baz, alkol, amfoter, anot, paran)..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}

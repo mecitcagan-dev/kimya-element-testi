@@ -96,6 +96,15 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
   const handleTopicSelect = (id: TopicId) => {
     setSelectedTopicId(id);
     writeStored(KEYS.tab, id);
+    const nextTopic = TOPIC_MAP.get(id);
+    if (
+      nextTopic &&
+      questionCount !== 10 &&
+      questionCount !== 20 &&
+      questionCount !== 'inf'
+    ) {
+      setQuestionCount(nextTopic.defaultCount);
+    }
   };
 
   const handleModeChange = (mode: AnswerMode) => {

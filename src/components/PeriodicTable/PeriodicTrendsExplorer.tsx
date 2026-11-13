@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   PERIODIC_DIRECTIONAL_TRENDS,
   TrendDirectionKey,
@@ -26,6 +26,18 @@ export const PeriodicTrendsExplorer: React.FC<PeriodicTrendsExplorerProps> = ({
   const [testTarget, setTestTarget] = useState<'Artar' | 'Azalır'>('Artar');
   const [selectedPropIds, setSelectedPropIds] = useState<Set<string>>(new Set());
   const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
+    if (!onClose) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   const currentGroup = PERIODIC_DIRECTIONAL_TRENDS[selectedDirection];
 
@@ -97,6 +109,9 @@ export const PeriodicTrendsExplorer: React.FC<PeriodicTrendsExplorerProps> = ({
     return (
       <div
         key={prop.id}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
         style={{
           backgroundColor: 'var(--card-2)',
           border: '1px solid var(--border-2)',
@@ -107,6 +122,12 @@ export const PeriodicTrendsExplorer: React.FC<PeriodicTrendsExplorerProps> = ({
           transition: 'all 0.15s ease'
         }}
         onClick={() => toggleExpand(prop.id)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleExpand(prop.id);
+          }
+        }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -479,6 +500,9 @@ export const PeriodicTrendsExplorer: React.FC<PeriodicTrendsExplorerProps> = ({
               return (
                 <div
                   key={prop.id}
+                  role="button"
+                  tabIndex={isChecked ? -1 : 0}
+                  aria-pressed={isSelected}
                   style={{
                     backgroundColor: bgColor,
                     border: `1.5px solid ${borderColor}`,
@@ -491,6 +515,12 @@ export const PeriodicTrendsExplorer: React.FC<PeriodicTrendsExplorerProps> = ({
                     justifyContent: 'space-between'
                   }}
                   onClick={() => toggleTestProp(prop.id)}
+                  onKeyDown={(e) => {
+                    if (!isChecked && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      toggleTestProp(prop.id);
+                    }
+                  }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

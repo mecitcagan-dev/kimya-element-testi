@@ -380,6 +380,7 @@ kbd.kb-key {
 }
 
 .studio-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -389,9 +390,17 @@ kbd.kb-key {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.12s;
   box-shadow:
     inset 0 3px 0 0 var(--studio-color, var(--border-2)),
     var(--shadow-sm);
+}
+
+.studio-card:hover {
+  border-color: var(--border-2);
+  background: var(--card-2);
+  transform: translateY(-1px);
 }
 
 .studio-card.tone-compass {
@@ -460,6 +469,14 @@ kbd.kb-key {
   justify-content: space-between;
   font-size: 12px;
   padding: 8px 12px;
+}
+
+.studio-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 1;
 }
 
 @media (max-width: 1219px) {
@@ -573,7 +590,8 @@ kbd.kb-key {
   pointer-events: none;
 }
 
-.search-input {
+.search-input,
+.text-input {
   width: 100%;
   font: inherit;
   font-size: 14px;
@@ -586,11 +604,17 @@ kbd.kb-key {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.search-input::placeholder {
+.text-input {
+  padding: 11px 14px;
+}
+
+.search-input::placeholder,
+.text-input::placeholder {
   color: var(--faint);
 }
 
-.search-input:focus {
+.search-input:focus,
+.text-input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -663,6 +687,7 @@ kbd.kb-key {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
 }
 
@@ -689,6 +714,14 @@ kbd.kb-key {
   text-align: left;
   cursor: pointer;
   display: block;
+}
+
+.topic-select-trigger::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 1;
 }
 
 .topic-head {
@@ -760,6 +793,8 @@ kbd.kb-key {
 }
 
 .topic-inspect-btn {
+  position: relative;
+  z-index: 2;
   padding: 5px 10px !important;
   font-size: 12px !important;
 }

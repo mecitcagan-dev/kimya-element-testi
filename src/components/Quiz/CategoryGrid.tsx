@@ -47,7 +47,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               style={{ '--rgb': cat.rgb } as React.CSSProperties}
               aria-pressed={isSelected}
               disabled={answered}
-              onClick={() => onSelectCategory(isSelected ? '' : cat.key)}
+              onClick={() => onSelectCategory(cat.key)}
             >
               <span className="dot" aria-hidden="true" />
               <span className="cat-label">{cat.key}</span>

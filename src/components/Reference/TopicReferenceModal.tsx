@@ -20,6 +20,18 @@ export const TopicReferenceModal: React.FC<TopicReferenceModalProps> = ({
     setQuery('');
   }, [topicId, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !topicId) return null;
 
   const topic = TOPIC_MAP.get(topicId);

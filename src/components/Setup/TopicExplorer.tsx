@@ -141,12 +141,16 @@ export const TopicExplorer: React.FC<TopicExplorerProps> = ({
               <article
                 key={t.id}
                 className={`topic-card ${isSelected ? 'selected' : ''}`}
+                onClick={() => onSelectTopic(t.id)}
               >
                 <button
                   type="button"
                   className="topic-select-trigger"
                   aria-pressed={isSelected}
-                  onClick={() => onSelectTopic(t.id)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onSelectTopic(t.id);
+                  }}
                 >
                   <div className="topic-head">
                     <div className="topic-title">
@@ -179,7 +183,10 @@ export const TopicExplorer: React.FC<TopicExplorerProps> = ({
                   <button
                     type="button"
                     className="btn ghost small topic-inspect-btn"
-                    onClick={() => onOpenTopicReference(t.id)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      onOpenTopicReference(t.id);
+                    }}
                   >
                     📖 İncele
                   </button>

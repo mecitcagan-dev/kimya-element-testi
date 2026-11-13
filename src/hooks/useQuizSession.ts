@@ -13,6 +13,7 @@ import {
 } from '../engine/statsEngine';
 import { randInt, shuffle } from '../utils/random';
 import { squeeze } from '../utils/text';
+import { KEYS, readStored } from '../utils/storage';
 
 interface RetryItem {
   id: number | string;
@@ -187,6 +188,8 @@ export function useQuizSession() {
     };
     progressRef.current = initialProgress;
     setProgress(initialProgress);
+    const savedShowTable = readStored(KEYS.showTable);
+    setShowPeriodicTable(cfg.quiz === 'element' ? (savedShowTable ?? 'true') === 'true' : false);
     setStatus('testing');
 
     presentNext(cfg);

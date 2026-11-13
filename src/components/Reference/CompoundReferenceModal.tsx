@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { COMPOUNDS, COMPOUND_CATEGORIES } from '../../data/compounds';
 
 interface CompoundReferenceModalProps {
@@ -12,6 +12,18 @@ export const CompoundReferenceModal: React.FC<CompoundReferenceModalProps> = ({
   isOpen,
   onClose
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (

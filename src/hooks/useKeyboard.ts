@@ -3,6 +3,7 @@ import { TopicId } from '../types/topics';
 import { QuestionItem, AnswerMode } from '../types/quiz';
 
 interface UseKeyboardProps {
+  disabled?: boolean;
   status: 'setup' | 'testing' | 'result';
   topic: TopicId;
   question: QuestionItem | null;
@@ -23,6 +24,7 @@ interface UseKeyboardProps {
 const OPT_KEYS = ['q', 'w', 'e', 'r'];
 
 export function useKeyboard({
+  disabled = false,
   status,
   question,
   questionState,
@@ -40,7 +42,7 @@ export function useKeyboard({
 }: UseKeyboardProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.isComposing) return;
+      if (disabled || e.ctrlKey || e.metaKey || e.isComposing) return;
 
       const key = (e.key || '').toLowerCase();
       const code = e.code || '';
@@ -155,6 +157,7 @@ export function useKeyboard({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
+    disabled,
     status,
     question,
     questionState,

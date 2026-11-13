@@ -513,4 +513,80 @@ describe('App Flow & Multi-Topic System', () => {
     const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
     expect(choicesGroup.querySelectorAll('button.opt').length).toBe(4);
   });
+
+  it('supports clicking anywhere on topic/studio cards, universal Escape step-back navigation, modal keyboard guards, and showTable preference', () => {
+    const { container } = render(<App />);
+
+    // 1. Konu kartının alt kısmına ("Seçmek için tıkla") basıldığında da konu seçilmeli
+    const compoundCard = screen
+      .getByText('Yaygın Bileşikler')
+      .closest('article.topic-card') as HTMLElement;
+    expect(compoundCard).not.toBeNull();
+    const bottomFooter = compoundCard.querySelector('.topic-footer') as HTMLElement;
+    expect(bottomFooter).not.toBeNull();
+    fireEvent.click(bottomFooter);
+    expect(
+      screen.getByRole('heading', { name: /Yaygın Bileşikler Ayarları/i })
+    ).toBeDefined();
+    expect(compoundCard.classList.contains('selected')).toBe(true);
+
+    // "📖 İncele" butonuna basıldığında TopicReferenceModal açılır ve Escape ile kapanır
+    const inspectBtn = within(compoundCard).getByRole('button', { name: /📖 İncele/i });
+    fireEvent.click(inspectBtn);
+    expect(screen.getByRole('dialog')).toBeDefined();
+
+    // Modal açıkken arka plandaki '0' kısayolu Periyodik Tablo çekmecesini açmamalı
+    fireEvent.keyDown(window, { key: '0' });
+    expect(container.querySelector('.setup-periodic-drawer')).toBeNull();
+
+    // Escape ile TopicReferenceModal kapanır
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // 2. Stüdyo kartının gövdesine (açıklama metnine) tıklamak ilgili stüdyo modalını açmalı ve Escape ile kapanmalı
+    const trendsDesc = screen.getByText(/Soldan sağa & yukarıdan aşağıya eğilimleri ve istisnaları keşfet/i);
+    fireEvent.click(trendsDesc);
+    const trendsDialog = screen.getByRole('dialog');
+    expect(
+      within(trendsDialog).getByRole('button', { name: /Konu Anlatımı & Keşif Rehberi/i })
+    ).toBeDefined();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Püf Noktaları modalı da kart açıklamasına basılınca açılıp Escape ile kapanmalı
+    fireEvent.click(screen.getByText(/DeDen TRabzonlu mu, Zengin Pabuçlu, Asit\/Baz bulma kuralları/i));
+    expect(screen.getByRole('dialog')).toBeDefined();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Setup periyodik tablo çekmecesi '0' ile açılır ve Escape ile kapanır
+    fireEvent.keyDown(window, { key: '0' });
+    expect(container.querySelector('.setup-periodic-drawer')).not.toBeNull();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(container.querySelector('.setup-periodic-drawer')).toBeNull();
+
+    // 3. Element testinde showTable tercihi kapatıldığında test içinde #pt-card başlangıçta kapalı olmalı
+    const elementCard = screen
+      .getByText('İlk 36 Element')
+      .closest('article.topic-card') as HTMLElement;
+    fireEvent.click(elementCard.querySelector('.topic-footer') as HTMLElement);
+
+    const showTableCheckbox = screen.getByRole('checkbox', {
+      name: /Test esnasında periyodik tabloyu göster/i
+    }) as HTMLInputElement;
+    if (showTableCheckbox.checked) {
+      fireEvent.click(showTableCheckbox);
+    }
+    expect(showTableCheckbox.checked).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: /Testi Başlat/i }));
+    expect(screen.getByRole('button', { name: /Bitir/i })).toBeDefined();
+    expect(container.querySelector('#pt-card')).toBeNull();
+
+    // QuizScreen -> Escape -> ResultScreen -> Escape -> SetupScreen
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.getByRole('button', { name: /Ayarlara dön/i })).toBeDefined();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.getByRole('button', { name: /Testi Başlat/i })).toBeDefined();
+  });
 });

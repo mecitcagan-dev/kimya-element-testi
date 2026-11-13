@@ -38,6 +38,14 @@ export const App: React.FC = () => {
   const [isAnimationsOpen, setIsAnimationsOpen] = useState(false);
   const [animationScene, setAnimationScene] = useState<AnimationSceneId>('galvanic_cell');
 
+  const isAnyModalOpen =
+    referenceTopicId !== null ||
+    isTrendsExplorerOpen ||
+    isMnemonicsOpen ||
+    isCompoundBuilderOpen ||
+    isChemistryLabOpen ||
+    isAnimationsOpen;
+
   const handleGoHome = () => {
     session.goToSetup();
     setReferenceTopicId(null);
@@ -47,7 +55,44 @@ export const App: React.FC = () => {
     setIsCompoundBuilderOpen(false);
     setIsChemistryLabOpen(false);
     setIsAnimationsOpen(false);
+    if (typeof window.scrollTo === 'function' && !/jsdom/i.test(navigator.userAgent)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
+
+  useEffect(() => {
+    if (!isAnyModalOpen && !isSetupPeriodicOpen) return;
+    const handleModalEscape = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      if (referenceTopicId !== null) {
+        setReferenceTopicId(null);
+      } else if (isTrendsExplorerOpen) {
+        setIsTrendsExplorerOpen(false);
+      } else if (isMnemonicsOpen) {
+        setIsMnemonicsOpen(false);
+      } else if (isCompoundBuilderOpen) {
+        setIsCompoundBuilderOpen(false);
+      } else if (isChemistryLabOpen) {
+        setIsChemistryLabOpen(false);
+      } else if (isAnimationsOpen) {
+        setIsAnimationsOpen(false);
+      } else if (isSetupPeriodicOpen) {
+        setIsSetupPeriodicOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleModalEscape);
+    return () => window.removeEventListener('keydown', handleModalEscape);
+  }, [
+    isAnyModalOpen,
+    isSetupPeriodicOpen,
+    referenceTopicId,
+    isTrendsExplorerOpen,
+    isMnemonicsOpen,
+    isCompoundBuilderOpen,
+    isChemistryLabOpen,
+    isAnimationsOpen
+  ]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -63,6 +108,7 @@ export const App: React.FC = () => {
   }, [session.status, session.sessionResult]);
 
   useKeyboard({
+    disabled: isAnyModalOpen,
     status: session.status,
     topic: session.config?.quiz ?? 'element',
     question: session.currentQuestion,
@@ -75,7 +121,10 @@ export const App: React.FC = () => {
     onRestart: session.restartQuiz,
     onStartMissed: session.startMissedOnly,
     onGoToSetup: session.goToSetup,
-    onToggleTable: session.togglePeriodicTable,
+    onToggleTable:
+      session.status === 'setup'
+        ? () => setIsSetupPeriodicOpen(prev => !prev)
+        : session.togglePeriodicTable,
     onSelectChoiceIndex: index => {
       const choice = session.choices[index];
       if (choice) {
@@ -107,7 +156,10 @@ export const App: React.FC = () => {
       {session.status === 'setup' && (
         <>
           <SetupScreen
-            onStartQuiz={session.startQuiz}
+            onStartQuiz={(cfg) => {
+              setIsSetupPeriodicOpen(false);
+              session.startQuiz(cfg);
+            }}
             onOpenPeriodicTable={() => setIsSetupPeriodicOpen(prev => !prev)}
             onOpenTopicReference={topicId => setReferenceTopicId(topicId)}
             onOpenTrendsExplorer={() => setIsTrendsExplorerOpen(true)}
