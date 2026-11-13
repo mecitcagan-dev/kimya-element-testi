@@ -7,7 +7,8 @@ export const KEYS = {
   compoundDirection: 'elementTesti.compoundDirection',   // bileşik soru yönü ('ad-formul' | 'formul-ad' | 'karisik')
   answerMode: 'elementTesti.answerMode',                 // cevap şekli: 'type' | 'choice'
   showTable: 'elementTesti.showTable',                   // periyodik tablo görünürlüğü
-  compoundIncludeType: 'elementTesti.compoundIncludeType' // YENİ: bileşikte tür sorulsun mu? ('true' | 'false')
+  compoundIncludeType: 'elementTesti.compoundIncludeType', // bileşikte tür sorulsun mu? ('true' | 'false')
+  theme: 'elementTesti.theme'                            // UI teması ('dark' | 'light')
 } as const;
 
 export function readStored(key: string): string | null {

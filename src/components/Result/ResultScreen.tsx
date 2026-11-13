@@ -21,11 +21,21 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const hasMissed = result.missed.length > 0;
   const showCatBox = result.includeCompoundType && result.catOk > 0;
 
+  const tierLabel =
+    n === 0
+      ? 'Oturum Sonlandırıldı'
+      : pct >= 85
+      ? '🏆 Mükemmel Sınav Refleksi!'
+      : pct >= 65
+      ? '✨ Güçlü İlerleme'
+      : '📚 Tekrarla Güçlen';
+
   return (
-    <section id="view-result">
+    <section id="view-result" className="result-shell">
       <h2 className="page-title">Sonuç — {result.topicTitle}</h2>
 
       <div className="card res-hero">
+        <span className="res-tier-pill">{tierLabel}</span>
         <div className="res-pct">{pct}%</div>
         <div className="res-sub">
           {n > 0
@@ -40,18 +50,24 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         <div className="res-grid">
           <div className="res-box">
             <span>Cevap doğru</span>
-            <strong>{result.nameOk} / {n}</strong>
+            <strong>
+              {result.nameOk} / {n}
+            </strong>
           </div>
 
           {showCatBox ? (
             <div className="res-box">
               <span>Tür / Kategori doğru</span>
-              <strong>{result.catOk} / {n}</strong>
+              <strong>
+                {result.catOk} / {n}
+              </strong>
             </div>
           ) : (
             <div className="res-box">
               <span>Konu</span>
-              <strong style={{ fontSize: '15px', color: 'var(--accent)' }}>{result.topicTitle}</strong>
+              <strong style={{ fontSize: '15px', color: 'var(--accent)' }}>
+                {result.topicTitle}
+              </strong>
             </div>
           )}
 
@@ -69,9 +85,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
       {/* Yanlış Yapılan Sorular Listesi */}
       <div className="card">
-        <h3 className="section-title">
-          Yanlış Yaptığın Maddeler ({result.missed.length})
-        </h3>
+        <h3 className="section-title">Yanlış Yaptığın Maddeler ({result.missed.length})</h3>
 
         <ul className="miss-list">
           {hasMissed ? (
@@ -90,7 +104,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
                   <div className="miss-line">
                     <span className="k">Senin cevabın:</span> {formatFormula(m.typed) || '—'}
                     {m.pickedCat && (
-                      <> &nbsp;·&nbsp; <span className="k">Seçtiğin tür:</span> {m.pickedCat}</>
+                      <>
+                        {' '}
+                        &nbsp;·&nbsp; <span className="k">Seçtiğin tür:</span> {m.pickedCat}
+                      </>
                     )}
                   </div>
                 </div>

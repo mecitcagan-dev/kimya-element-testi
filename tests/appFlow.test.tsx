@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import fs from 'node:fs';
+import path from 'node:path';
 import { App } from '../src/App';
 
 describe('App Flow & Multi-Topic System', () => {
@@ -316,6 +318,198 @@ describe('App Flow & Multi-Topic System', () => {
     );
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByText(/Elektrokimya & Organik Derinleşme/)).toBeDefined();
+    const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
+    expect(choicesGroup.querySelectorAll('button.opt').length).toBe(4);
+  });
+
+  it('supports theme switching, live topic search with empty state reset, and reference modal search', () => {
+    render(<App />);
+
+    // 1. Tema anahtarı: Koyu -> Açık -> Koyu
+    const themeBtn = screen.getByRole('button', { name: /Açık temaya geç/i });
+    fireEvent.click(themeBtn);
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(window.localStorage.getItem('elementTesti.theme')).toBe('light');
+
+    const darkBtn = screen.getByRole('button', { name: /Koyu temaya geç/i });
+    fireEvent.click(darkBtn);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+
+    // 2. Konu arama kutusu ve boş durum sıfırlama
+    const searchInput = screen.getByRole('searchbox', { name: /Konu veya kavram ara/i });
+    fireEvent.change(searchInput, { target: { value: 'adlandırma' } });
+    expect(screen.getByText('Sistematik Bileşik Adlandırma (IUPAC)')).toBeDefined();
+    expect(screen.queryByText('Yaygın Bileşikler')).toBeNull();
+
+    fireEvent.change(searchInput, { target: { value: 'olmayankonuxyz' } });
+    expect(screen.getByText(/Eşleşen konu bulunamadı/i)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /Filtreleri Sıfırla/i }));
+    expect(screen.getByText('Yaygın Bileşikler')).toBeDefined();
+
+    // 3. Konu seçip Konu Listesini İncele modalında canlı filtreleme
+    fireEvent.click(screen.getByText('Sistematik Bileşik Adlandırma (IUPAC)'));
+    fireEvent.click(screen.getByRole('button', { name: /📖 Konu Listesini İncele/i }));
+    const dialog = screen.getByRole('dialog');
+    const modalSearch = within(dialog).getByRole('searchbox', {
+      name: /Çalışma kartlarında ara/i
+    });
+    fireEvent.change(modalSearch, { target: { value: 'sülfat' } });
+    expect(within(dialog).getAllByText(/sülfat/i).length).toBeGreaterThan(0);
+    fireEvent.click(within(dialog).getAllByRole('button', { name: 'Kapat' })[0]);
+  });
+
+  it('renders custom generated icons in AppHeader, StudioStrip, and public/icons/, and navigates home via Ana sayfaya dön button', () => {
+    const expectedIcons = [
+      'brand-atom.jpg',
+      'lab-compass.jpg',
+      'lab-mnemonics.jpg',
+      'lab-builder.jpg',
+      'lab-battery.jpg',
+      'lab-animations.jpg'
+    ];
+    for (const fileName of expectedIcons) {
+      const iconPath = path.resolve(process.cwd(), 'public/icons', fileName);
+      expect(fs.existsSync(iconPath)).toBe(true);
+    }
+
+    render(<App />);
+
+    // AppHeader pill ve marka ikonu
+    expect(screen.getByText(/24 Konu · 5 Stüdyo/i)).toBeDefined();
+    const goHomeBtn = screen.getByRole('button', { name: 'Ana sayfaya dön' });
+    const brandImg = goHomeBtn.querySelector('img.brand-icon-img');
+    expect(brandImg).not.toBeNull();
+    expect(brandImg?.getAttribute('src')).toBe('./icons/brand-atom.jpg');
+
+    // StudioStrip 5 kart ve custom lab-*.jpg ikonları
+    const studioRegion = screen.getByRole('region', { name: 'İnteraktif kimya stüdyoları' });
+    const studioImgs = Array.from(studioRegion.querySelectorAll('img.studio-icon-img'));
+    expect(studioImgs.map(img => img.getAttribute('src'))).toEqual([
+      './icons/lab-compass.jpg',
+      './icons/lab-mnemonics.jpg',
+      './icons/lab-builder.jpg',
+      './icons/lab-battery.jpg',
+      './icons/lab-animations.jpg'
+    ]);
+
+    // Açık bir modal varken "Ana sayfaya dön" modalı kapatır ve Setup ekranında kalır
+    fireEvent.click(screen.getByRole('button', { name: /Animasyonları İzle 🎬/i }));
+    expect(screen.getByRole('dialog', { name: /Canlı Kimya Animasyonları Stüdyosu/i })).toBeDefined();
+
+    fireEvent.click(goHomeBtn);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: /Testi Başlat/i })).toBeDefined();
+
+    // Aktif bir test (QuizScreen) içindeyken "Ana sayfaya dön" Setup ekranına döndürür
+    fireEvent.click(screen.getByRole('button', { name: /Testi Başlat/i }));
+    expect(screen.getByRole('button', { name: /Bitir/i })).toBeDefined();
+    expect(screen.queryByRole('button', { name: /Testi Başlat/i })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ana sayfaya dön' }));
+    expect(screen.getByRole('button', { name: /Testi Başlat/i })).toBeDefined();
+    expect(screen.queryByRole('button', { name: /Bitir/i })).toBeNull();
+  });
+
+  it('opens ChemistryAnimationsModal, tests all 8 topics, exam filters, Galvanic controls, scene switching, and topic quiz launch', () => {
+    render(<App />);
+
+    // 1. Stüdyo bandından "Animasyonları İzle 🎬" ile modalı aç
+    fireEvent.click(screen.getByRole('button', { name: /Animasyonları İzle 🎬/i }));
+    const dialog = screen.getByRole('dialog', {
+      name: /Canlı Kimya Animasyonları Stüdyosu/i
+    });
+    expect(dialog).toBeDefined();
+
+    // 2. Tüm 8 animasyon konusu kenar çubuğunda listelenmeli
+    const sidebar = within(dialog).getByRole('navigation', {
+      name: 'Kimya animasyon sahneleri'
+    });
+    const allTopicTitles = [
+      'Daniell Pili & Elektron Akışı',
+      'Elektroliz & Hofmann Voltametresi',
+      'Kimyasal Denge & Le Chatelier',
+      'Gaz Yasaları & Graham Difüzyonu',
+      'Polarite, Hidrojen Bağı & Hidratasyon',
+      'Bohr Atom Modeli & Kuantum Orbitalleri',
+      'Koligatif Özellikler & Ozmoz',
+      'Asit–Baz Nötralleşme & Titrasyon'
+    ];
+    expect(within(sidebar).getAllByRole('button').length).toBe(8);
+    for (const title of allTopicTitles) {
+      expect(within(sidebar).getByText(title)).toBeDefined();
+    }
+
+    // 3. Sınav filtre sekmeleri (AYT, TYT / Ortak, Tümü)
+    const aytTab = within(dialog).getByRole('tab', { name: /^AYT \(4\)$/i });
+    fireEvent.click(aytTab);
+    expect(within(sidebar).getAllByRole('button').length).toBe(4);
+    expect(within(sidebar).getByText('Daniell Pili & Elektron Akışı')).toBeDefined();
+    expect(within(sidebar).queryByText('Polarite, Hidrojen Bağı & Hidratasyon')).toBeNull();
+
+    const tytTab = within(dialog).getByRole('tab', { name: /^TYT \/ Ortak \(4\)$/i });
+    fireEvent.click(tytTab);
+    expect(within(sidebar).getAllByRole('button').length).toBe(4);
+    expect(within(sidebar).getByText('Polarite, Hidrojen Bağı & Hidratasyon')).toBeDefined();
+    expect(within(sidebar).queryByText('Daniell Pili & Elektron Akışı')).toBeNull();
+
+    const allTab = within(dialog).getByRole('tab', { name: /^Tümü \(8\)$/i });
+    fireEvent.click(allTab);
+    expect(within(sidebar).getAllByRole('button').length).toBe(8);
+
+    // 4. Galvanik Hücre (Daniell Pili) sahne kontrolleri: Duraklat/Oynat, Sıfırla, Tuz Köprüsü toggle
+    fireEvent.click(within(sidebar).getByText('Daniell Pili & Elektron Akışı'));
+    expect(
+      within(dialog).getByText(/Daniell Pili: Zn\(k\) \| Zn²⁺\(1M\) \|\| Cu²⁺\(1M\) \| Cu\(k\)/i)
+    ).toBeDefined();
+
+    const pauseBtn = within(dialog).getByRole('button', { name: /Duraklat/i });
+    fireEvent.click(pauseBtn);
+    const playBtn = within(dialog).getByRole('button', { name: /Oynat/i });
+    expect(playBtn).toBeDefined();
+    fireEvent.click(playBtn);
+    expect(within(dialog).getByRole('button', { name: /Duraklat/i })).toBeDefined();
+
+    const resetBtn = within(dialog).getByRole('button', { name: /Sıfırla/i });
+    fireEvent.click(resetBtn);
+    expect(within(dialog).getByText('%0')).toBeDefined();
+
+    const removeSaltBridgeBtn = within(dialog).getByRole('button', {
+      name: /Tuz Köprüsünü Çıkar/i
+    });
+    fireEvent.click(removeSaltBridgeBtn);
+    expect(
+      within(dialog).getByText(/Tuz köprüsü çıkarıldığında devre tamamlanamaz/i)
+    ).toBeDefined();
+    const restoreSaltBridgeBtn = within(dialog).getByRole('button', {
+      name: /Tuz Köprüsünü Tak/i
+    });
+    fireEvent.click(restoreSaltBridgeBtn);
+    expect(
+      within(dialog).queryByText(/Tuz köprüsü çıkarıldığında devre tamamlanamaz/i)
+    ).toBeNull();
+
+    // 5. Diğer sahnelere geçiş (Bohr, Gazlar, Titrasyon)
+    fireEvent.click(within(sidebar).getByText('Bohr Atom Modeli & Kuantum Orbitalleri'));
+    expect(
+      within(dialog).getByText(/Bohr Foton Geçişleri & Küresel Simetri/i)
+    ).toBeDefined();
+
+    fireEvent.click(within(sidebar).getByText('Gaz Yasaları & Graham Difüzyonu'));
+    expect(
+      within(dialog).getByText(/Gazların Kinetik Teorisi & Difüzyon Yasaları/i)
+    ).toBeDefined();
+
+    fireEvent.click(within(sidebar).getByText('Asit–Baz Nötralleşme & Titrasyon'));
+    expect(
+      within(dialog).getByText(/Asit–Baz Nötralleşme & Titrasyon Eğrisi/i)
+    ).toBeDefined();
+
+    // 6. "🎯 Bu Konunun Testini Çöz" ilgili konunun testini başlatır (Titrasyon -> Gazlar, Çözeltiler & Asit-Baz Dengesi)
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /🎯 Bu Konunun Testini Çöz/i })
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText(/Gazlar, Çözeltiler & Asit-Baz Dengesi/)).toBeDefined();
     const choicesGroup = screen.getByRole('group', { name: /Seçenekler/i });
     expect(choicesGroup.querySelectorAll('button.opt').length).toBe(4);
   });

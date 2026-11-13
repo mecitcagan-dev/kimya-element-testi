@@ -37,10 +37,22 @@ export const OptionGrid: React.FC<OptionGridProps> = ({
             className={`opt ${statusClass}`}
             aria-pressed={isSelected}
             disabled={answered}
-            onClick={() => onSelectChoice(isSelected ? '' : choice)}
+            onClick={() => onSelectChoice(choice)}
           >
             <span className="opt-label">{choice}</span>
-            {i < OPT_KEYS.length && <KeyBadge label={OPT_KEYS[i]} />}
+            <span className="opt-trailing">
+              {isRight && (
+                <span className="opt-mark" aria-label="Doğru seçenek">
+                  ✓
+                </span>
+              )}
+              {isWrong && (
+                <span className="opt-mark" aria-label="Yanlış seçenek">
+                  ✗
+                </span>
+              )}
+              {i < OPT_KEYS.length && <KeyBadge label={OPT_KEYS[i]} />}
+            </span>
           </button>
         );
       })}

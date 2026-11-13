@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useQuizSession } from './hooks/useQuizSession';
 import { useKeyboard } from './hooks/useKeyboard';
+import { AppHeader, AppTheme } from './components/Layout/AppHeader';
 import { SetupScreen } from './components/Setup/SetupScreen';
 import { QuizScreen } from './components/Quiz/QuizScreen';
 import { ResultScreen } from './components/Result/ResultScreen';
@@ -10,11 +11,22 @@ import { PeriodicTrendsExplorer } from './components/PeriodicTable/PeriodicTrend
 import { MnemonicsModal } from './components/Mnemonics/MnemonicsModal';
 import { CompoundBuilderModal } from './components/Interactive/CompoundBuilderModal';
 import { ChemistryLabModal } from './components/Interactive/ChemistryLabModal';
-import { TOPIC_MAP } from './data/topics';
+import {
+  AnimationSceneId,
+  ChemistryAnimationsModal
+} from './components/Animations/ChemistryAnimationsModal';
+import { ALL_TOPICS, TOPIC_MAP } from './data/topics';
 import { TopicId } from './types/topics';
+import { KEYS, readStored, writeStored } from './utils/storage';
+import { getWeakTopicIds } from './engine/statsEngine';
 
 export const App: React.FC = () => {
   const session = useQuizSession();
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    const saved = readStored(KEYS.theme);
+    return saved === 'light' || saved === 'dark' ? saved : 'dark';
+  });
+
   const [referenceTopicId, setReferenceTopicId] = useState<TopicId | null>(null);
   const [isSetupPeriodicOpen, setIsSetupPeriodicOpen] = useState(false);
   const [isTrendsExplorerOpen, setIsTrendsExplorerOpen] = useState(false);
@@ -23,8 +35,33 @@ export const App: React.FC = () => {
   const [isCompoundBuilderOpen, setIsCompoundBuilderOpen] = useState(false);
   const [isChemistryLabOpen, setIsChemistryLabOpen] = useState(false);
   const [chemistryLabTab, setChemistryLabTab] = useState<'equilibrium' | 'electrochemistry'>('equilibrium');
+  const [isAnimationsOpen, setIsAnimationsOpen] = useState(false);
+  const [animationScene, setAnimationScene] = useState<AnimationSceneId>('galvanic_cell');
 
-  // Klavye olayları bağlama
+  const handleGoHome = () => {
+    session.goToSetup();
+    setReferenceTopicId(null);
+    setIsSetupPeriodicOpen(false);
+    setIsTrendsExplorerOpen(false);
+    setIsMnemonicsOpen(false);
+    setIsCompoundBuilderOpen(false);
+    setIsChemistryLabOpen(false);
+    setIsAnimationsOpen(false);
+  };
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    writeStored(KEYS.theme, theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute('content', theme === 'light' ? '#f3f6fb' : '#090c12');
+    }
+  }, [theme]);
+
+  const totalWeakItems = useMemo(() => {
+    return ALL_TOPICS.reduce((sum, topic) => sum + getWeakTopicIds(topic.id).length, 0);
+  }, [session.status, session.sessionResult]);
+
   useKeyboard({
     status: session.status,
     topic: session.config?.quiz ?? 'element',
@@ -57,6 +94,15 @@ export const App: React.FC = () => {
 
   return (
     <main className="wrap">
+      <AppHeader
+        theme={theme}
+        onToggleTheme={() => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))}
+        onGoHome={handleGoHome}
+        totalTopics={ALL_TOPICS.length}
+        totalWeakItems={totalWeakItems}
+        isSetupView={session.status === 'setup'}
+      />
+
       {/* 1. Kurulum Ekranı */}
       {session.status === 'setup' && (
         <>
@@ -65,7 +111,7 @@ export const App: React.FC = () => {
             onOpenPeriodicTable={() => setIsSetupPeriodicOpen(prev => !prev)}
             onOpenTopicReference={topicId => setReferenceTopicId(topicId)}
             onOpenTrendsExplorer={() => setIsTrendsExplorerOpen(true)}
-            onOpenMnemonics={(cat) => {
+            onOpenMnemonics={cat => {
               if (cat) setMnemonicsCategory(cat);
               setIsMnemonicsOpen(true);
             }}
@@ -74,12 +120,18 @@ export const App: React.FC = () => {
               setChemistryLabTab(tab);
               setIsChemistryLabOpen(true);
             }}
+            onOpenAnimations={(scene = 'galvanic_cell') => {
+              setAnimationScene(scene);
+              setIsAnimationsOpen(true);
+            }}
           />
 
           {isSetupPeriodicOpen && (
-            <div style={{ marginTop: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 700, fontSize: '15px' }}>Periyodik Tablo (İlk 36 Element)</span>
+            <div className="setup-periodic-drawer card">
+              <div className="setup-periodic-head">
+                <span style={{ fontWeight: 700, fontSize: '15px' }}>
+                  Periyodik Tablo (İlk 36 Element)
+                </span>
                 <button
                   type="button"
                   className="btn ghost small"
@@ -143,25 +195,12 @@ export const App: React.FC = () => {
       {/* Periyodik Sistem Değişim Pusulası Modalı */}
       {isTrendsExplorerOpen && (
         <div
+          className="modal-backdrop"
           role="dialog"
           aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '16px',
-            backdropFilter: 'blur(5px)'
-          }}
           onClick={() => setIsTrendsExplorerOpen(false)}
         >
-          <div
-            style={{ maxWidth: '900px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="modal-panel wide" onClick={e => e.stopPropagation()}>
             <PeriodicTrendsExplorer
               onClose={() => setIsTrendsExplorerOpen(false)}
               onStartTrendQuiz={() => {
@@ -233,7 +272,28 @@ export const App: React.FC = () => {
           });
         }}
       />
+
+      {/* Canlı Kimya Animasyonları Stüdyosu Modalı */}
+      <ChemistryAnimationsModal
+        isOpen={isAnimationsOpen}
+        initialScene={animationScene}
+        onClose={() => setIsAnimationsOpen(false)}
+        onStartTopicQuiz={topicId => {
+          setIsAnimationsOpen(false);
+          const topicDef = TOPIC_MAP.get(topicId);
+          session.startQuiz({
+            quiz: topicId,
+            kind: 'range',
+            total: 20,
+            retry: true,
+            mode: 'choice',
+            dir: topicDef?.directions?.[0]?.id,
+            includeCompoundType: false
+          });
+        }}
+      />
     </main>
   );
 };
+
 export default App;
